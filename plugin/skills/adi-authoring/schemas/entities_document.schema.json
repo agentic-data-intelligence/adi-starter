@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "EntityColumn": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "string",
+            "boolean",
+            "integer",
+            "number",
+            "decimal",
+            "date",
+            "timestamp",
+            "json"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        }
+      },
+      "required": ["name", "type"],
+      "title": "EntityColumn",
+      "type": "object"
+    },
+    "EntityTime": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "Canonical",
+          "type": "string"
+        },
+        "candidates": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidates"
+        }
+      },
+      "required": ["canonical"],
+      "title": "EntityTime",
+      "type": "object"
+    },
+    "EntityYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": ["fact", "dimension", "bridge"],
+          "title": "Kind",
+          "type": "string"
+        },
+        "physical": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Physical",
+          "type": "string"
+        },
+        "primary_key": {
+          "description": "Warehouse-unique row key. On bronze/CDC tables this may be a technical lineage id (e.g. source_record_id); a separate column may be the business natural key. Do not treat PK alone as the business identifier when both exist—align metrics, counts, and vocabulary with the analytical grain / natural key the contract describes.",
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Primary Key",
+          "type": "array"
+        },
+        "grain": {
+          "description": "Analytical grain (often equals primary_key). Prefer the business grain when the fact represents business objects and the PK is technical-only; align count_distinct and metric titles with that choice.",
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Grain",
+          "type": "array"
+        },
+        "unique_keys": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Declared unique keys for the entity (especially dimensions). Each unique key is a list of column names. Used by `require_dim_unique_on_join_key` to verify that joins do not fan out through non-unique dimension keys.",
+          "title": "Unique Keys"
+        },
+        "time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EntityTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "row_scope": {
+          "anyOf": [
+            {
+              "enum": [
+                "raw_all_rows",
+                "current_non_deleted",
+                "latest_by_pk",
+                "event_log"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which physical rows belong in analytics when CDC/soft-delete/SCD markers exist. For latest_by_pk, document how 'latest' is resolved unless the warehouse encodes it in a view: default tie-break preference is updated_at, then ingest time (_ingest_time or equivalent), then created_at; use another ordering only when metadata or DAL states it explicitly.",
+          "title": "Row Scope"
+        },
+        "columns": {
+          "items": {
+            "$ref": "#/$defs/EntityColumn"
+          },
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "joins": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/JoinEdge"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Joins"
+        }
+      },
+      "required": ["id", "kind", "physical", "primary_key", "grain", "columns"],
+      "title": "EntityYaml",
+      "type": "object"
+    },
+    "JoinEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "to": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "To",
+          "type": "string"
+        },
+        "on": {
+          "items": {
+            "$ref": "#/$defs/JoinOnPair"
+          },
+          "minItems": 1,
+          "title": "On",
+          "type": "array"
+        },
+        "cardinality": {
+          "enum": ["1:1", "1:n", "n:1", "n:m"],
+          "title": "Cardinality",
+          "type": "string"
+        },
+        "join_role": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Required when multiple joins target the same entity; disambiguates roles for generators.",
+          "title": "Join Role"
+        },
+        "required": {
+          "default": false,
+          "description": "When true, INNER JOIN; else LEFT JOIN.",
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": ["to", "on", "cardinality"],
+      "title": "JoinEdge",
+      "type": "object"
+    },
+    "JoinOnPair": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "To",
+          "type": "string"
+        }
+      },
+      "required": ["from", "to"],
+      "title": "JoinOnPair",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "entities": {
+      "items": {
+        "$ref": "#/$defs/EntityYaml"
+      },
+      "minItems": 1,
+      "title": "Entities",
+      "type": "array"
+    }
+  },
+  "required": ["entities"],
+  "title": "EntitiesYaml",
+  "type": "object"
+}

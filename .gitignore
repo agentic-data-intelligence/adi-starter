@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+
+# Environment / secrets
+.env
+.env.*
+
+# Locally installed skill copies (per-agent; do not commit). The shared
+# Claude Code settings file is the one exception.
+.claude/*
+!.claude/settings.json
+.cursor/
+.agents/skills/
+
+# Note: plugin/.mcp.json IS committed — it is the shipped MCP stub, not a secret
+# (it carries no credentials; the hosted service authenticates via browser login).

@@ -1,0 +1,41 @@
+# Copyright 2026 Agentic Data Intelligence SA
+# SPDX-License-Identifier: Apache-2.0
+
+name: autofix.ci
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# The fix commit is pushed by the autofix.ci GitHub App, not GITHUB_TOKEN, so the
+# token stays read-only: this job runs PR-controlled Trunk config.
+permissions:
+  contents: read
+
+jobs:
+  trunk-fmt-and-autofix:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Cache Trunk
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cache/trunk
+            ~/.trunk
+          key: trunk-${{ runner.os }}-${{ hashFiles('.trunk/trunk.yaml', 'trunk.yaml') }}
+          restore-keys: |
+            trunk-${{ runner.os }}-
+
+      - name: Install Trunk
+        run: curl -fsSL https://get.trunk.io | bash
+
+      - name: Trunk Format
+        run: trunk fmt
+
+      - uses: autofix-ci/action@c5b2d67aa2274e7b5a18224e8171550871fc7e4a # v1.3.4

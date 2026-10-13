@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "AdiContractDatasource": {
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "enum": [
+            "databricks",
+            "spark",
+            "snowflake",
+            "bigquery",
+            "postgres",
+            "duckdb",
+            "other"
+          ],
+          "title": "Engine",
+          "type": "string"
+        },
+        "default_catalog": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Default Catalog",
+          "type": "string"
+        },
+        "default_schema": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Default Schema",
+          "type": "string"
+        },
+        "sql_dialect": {
+          "enum": [
+            "spark",
+            "snowflake",
+            "bigquery",
+            "postgres",
+            "ansi",
+            "other"
+          ],
+          "title": "Sql Dialect",
+          "type": "string"
+        }
+      },
+      "required": [
+        "engine",
+        "default_catalog",
+        "default_schema",
+        "sql_dialect"
+      ],
+      "title": "AdiContractDatasource",
+      "type": "object"
+    },
+    "AdiContractDefaults": {
+      "additionalProperties": false,
+      "properties": {
+        "timezone": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Timezone",
+          "type": "string"
+        },
+        "currency": {
+          "title": "Currency",
+          "type": "string"
+        },
+        "row_limit": {
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Row Limit",
+          "type": "integer"
+        }
+      },
+      "required": ["timezone", "currency", "row_limit"],
+      "title": "AdiContractDefaults",
+      "type": "object"
+    },
+    "AdiContractGovernance": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_entities": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Entities"
+        },
+        "allowed_metrics": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Metrics"
+        }
+      },
+      "title": "AdiContractGovernance",
+      "type": "object"
+    },
+    "AdiContractRuleset": {
+      "additionalProperties": false,
+      "properties": {
+        "missing_data_rule": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Data Rule"
+        },
+        "guardrails": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guardrails"
+        }
+      },
+      "title": "AdiContractRuleset",
+      "type": "object"
+    },
+    "SelfCheckAssertion": {
+      "additionalProperties": false,
+      "description": "A single replayable assertion the seeder emits at generation time.\n\nEach assertion is a small, dialect-agnostic SQL probe paired with an expected\nqualitative outcome. Downstream validators (or the runtime) can replay them to\nconfirm a generator-time invariant still holds (e.g. PK uniqueness, FX coverage)\nwithout re-deriving the invariant themselves. Assertions are *advisory*:\ncontract loaders that don't understand the section MUST ignore it; loaders that\ndo understand it MUST treat assertion failures as warnings unless the consumer\nexplicitly opts into hard-fail.\n\nFields:\n\n- ``name`` — snake_case identifier, unique within the contract.\n- ``description`` — optional human-readable explanation.\n- ``concern`` — short stable category id (e.g. ``primary_key_unique``,\n  ``fx_column_non_null``) so consumers can group / filter without parsing names.\n- ``sql`` — single statement returning exactly one row with one column. Should\n  be portable across the engines listed in :data:`Engine`; complex\n  dialect-specific assertions belong in a separate runtime-bound section, not\n  in the contract itself.\n- ``expect`` — qualitative expected outcome of the single returned scalar:\n  ``true`` / ``false`` for boolean returns, ``zero`` / ``non_zero`` for counts.",
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "concern": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Concern",
+          "type": "string"
+        },
+        "sql": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Sql",
+          "type": "string"
+        },
+        "expect": {
+          "enum": ["true", "false", "non_zero", "zero"],
+          "title": "Expect",
+          "type": "string"
+        }
+      },
+      "required": ["name", "concern", "sql", "expect"],
+      "title": "SelfCheckAssertion",
+      "type": "object"
+    },
+    "SelfCheckBlock": {
+      "additionalProperties": false,
+      "description": "Container for the ``self_check`` block on ``contract.yaml``.",
+      "properties": {
+        "assertions": {
+          "items": {
+            "$ref": "#/$defs/SelfCheckAssertion"
+          },
+          "title": "Assertions",
+          "type": "array"
+        }
+      },
+      "title": "SelfCheckBlock",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "adi_contract_version": {
+      "const": "1.0",
+      "title": "Adi Contract Version",
+      "type": "string"
+    },
+    "contract_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Contract Id",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "datasource": {
+      "$ref": "#/$defs/AdiContractDatasource"
+    },
+    "defaults": {
+      "$ref": "#/$defs/AdiContractDefaults"
+    },
+    "governance": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AdiContractGovernance"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "selector_convention": {
+      "const": "entity_column",
+      "default": "entity_column",
+      "title": "Selector Convention",
+      "type": "string"
+    },
+    "ruleset": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AdiContractRuleset"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "self_check": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SelfCheckBlock"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional generator-time assertions that downstream validators can replay to confirm contract-time invariants still hold (PK uniqueness, FX coverage, etc.). Loaders that don't understand the section MUST ignore it."
+    }
+  },
+  "required": [
+    "adi_contract_version",
+    "contract_id",
+    "title",
+    "datasource",
+    "defaults"
+  ],
+  "title": "ContractYaml",
+  "type": "object"
+}

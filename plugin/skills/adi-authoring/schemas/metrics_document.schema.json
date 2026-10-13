@@ -1,0 +1,494 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "MetricDefaultFilter": {
+      "additionalProperties": false,
+      "description": "WHERE predicate applied in addition to intent filters when compiling this metric (e.g. status = succeeded).",
+      "properties": {
+        "entity_ref": {
+          "title": "Entity Ref",
+          "type": "string"
+        },
+        "operator": {
+          "description": "SQL-style operator, uppercased by runtime.",
+          "enum": [
+            "=",
+            "!=",
+            "<>",
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "LIKE",
+            "ILIKE",
+            "IN",
+            "NOT IN",
+            "BETWEEN"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scalar or list for IN/NOT IN/BETWEEN; null if operator allows (discouraged).",
+          "title": "Value"
+        }
+      },
+      "required": ["entity_ref", "operator"],
+      "title": "MetricDefaultFilter",
+      "type": "object"
+    },
+    "MetricExpression": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": ["sum", "count_distinct"]
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["value"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "count"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ratio"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "numerator": {
+                "properties": {
+                  "type": {
+                    "const": "sum"
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "value"],
+                "type": "object"
+              },
+              "denominator": {
+                "properties": {
+                  "type": {
+                    "const": "count_distinct"
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "value"],
+                "type": "object"
+              }
+            },
+            "required": ["numerator", "denominator"]
+          }
+        }
+      ],
+      "properties": {
+        "type": {
+          "enum": ["sum", "count", "count_distinct", "ratio"],
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "numerator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetricRatioOperand"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "denominator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetricRatioOperand"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": ["type"],
+      "title": "MetricExpression",
+      "type": "object"
+    },
+    "MetricRatioOperand": {
+      "additionalProperties": false,
+      "description": "Single aggregate inside a ``type: ratio`` metric expression.",
+      "properties": {
+        "type": {
+          "enum": ["sum", "count_distinct"],
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": ["type", "value"],
+      "title": "MetricRatioOperand",
+      "type": "object"
+    },
+    "MetricTime": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical": {
+          "title": "Canonical",
+          "type": "string"
+        }
+      },
+      "required": ["canonical"],
+      "title": "MetricTime",
+      "type": "object"
+    },
+    "MetricUnit": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "currency"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "code": {
+                "description": "ISO 4217 currency code (e.g. USD, EUR, XXX); required when kind is currency.",
+                "maxLength": 8,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["code"]
+          }
+        }
+      ],
+      "properties": {
+        "kind": {
+          "enum": ["currency", "count", "unitless"],
+          "title": "Kind",
+          "type": "string"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ISO 4217 alphabetic code when unit.kind=currency (required in that case). Use XXX when rows carry mixed source currencies and the metric is local (amount_semantics=local) with currency_column_ref — not a substitute for USD normalization. Omit or null when kind is count or unitless.",
+          "title": "Code"
+        },
+        "fx_rule": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fx Rule"
+        }
+      },
+      "required": ["kind"],
+      "title": "MetricUnit",
+      "type": "object"
+    },
+    "MetricYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "metric_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "base_entity": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Base Entity",
+          "type": "string"
+        },
+        "time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetricTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetricUnit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "expression": {
+          "$ref": "#/$defs/MetricExpression"
+        },
+        "additivity": {
+          "anyOf": [
+            {
+              "enum": ["additive", "semi_additive", "non_additive"],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Additivity"
+        },
+        "allowed_group_bys": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Group Bys"
+        },
+        "disallowed_group_bys": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Disallowed Group Bys"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 500,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "scope_note": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explains metric scope when title implies a filter the expression does not encode.",
+          "title": "Scope Note"
+        },
+        "default_filters": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/MetricDefaultFilter"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Predicates always applied to this metric in generated SQL, before intent-level filters.",
+          "title": "Default Filters"
+        },
+        "amount_semantics": {
+          "anyOf": [
+            {
+              "enum": ["local", "normalized"],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "local = source row currency; normalized = converted to a reference currency (USD).",
+          "title": "Amount Semantics"
+        },
+        "currency_column_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Entity.column for the currency that denominates the summed amount columns. When both currency and billing_currency (or similar) exist, reference the column that matches the amount fields unless the warehouse/DAL states amounts are in billing currency—in that case use billing_currency and note it in scope_note.",
+          "title": "Currency Column Ref"
+        },
+        "normalization_ref": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "FX path: entity.column, or prefixed fx_rule:, fx_column:, fx_table:. May be followed by ``;<modifier>=<value>`` pairs. ``cast=double`` is an abstract hint for per-row fx_column multiplication (see contract_semantics). For ``fx_table:<physical_table>``, ``as_of=<entity.column>`` is required (valuation date on the metric's join path); optional ``quote=USD`` (default USD at runtime if omitted), ``base=USD`` (identity / same-currency rows), and ``rate_date_col`` / ``base_currency_col`` / ``quote_currency_col`` / ``rate_col`` when the FX table does not use the standard names rate_date, base_currency, quote_currency, rate. Execution semantics are implemented in ``adi-core`` (``adi_core.sql.fx``, ``adi_core.sql.compiler``) — see schemas/README.md.",
+          "title": "Normalization Ref"
+        }
+      },
+      "required": ["metric_id", "title", "base_entity", "expression"],
+      "title": "MetricYaml",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/MetricYaml"
+      },
+      "minItems": 1,
+      "title": "Metrics",
+      "type": "array"
+    }
+  },
+  "required": ["metrics"],
+  "title": "MetricsYaml",
+  "type": "object"
+}

@@ -1,0 +1,26 @@
+# Copyright 2026 Agentic Data Intelligence SA
+# SPDX-License-Identifier: Apache-2.0
+
+name: Docs Link Check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lychee:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check links in Markdown
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          # Fail if the globs match nothing, so a future path change can't
+          # silently turn this back into a no-op.
+          failIfEmpty: true
+          # `--offline` validates relative/internal doc links (and their
+          # #fragments) without hitting the network, so PRs don't fail on
+          # third-party outages or rate limits.
+          args: --offline --include-fragments --verbose --no-progress "*.md" "docs/**/*.md" "plugin/**/*.md"

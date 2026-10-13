@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "VocabularyBody": {
+      "additionalProperties": false,
+      "properties": {
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/VocabularyMetricEntry"
+          },
+          "title": "Metrics",
+          "type": "array"
+        },
+        "dimensions": {
+          "items": {
+            "$ref": "#/$defs/VocabularyDimensionEntry"
+          },
+          "title": "Dimensions",
+          "type": "array"
+        }
+      },
+      "required": ["metrics", "dimensions"],
+      "title": "VocabularyBody",
+      "type": "object"
+    },
+    "VocabularyDimensionEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "aliases": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Aliases",
+          "type": "array"
+        },
+        "selector": {
+          "title": "Selector",
+          "type": "string"
+        }
+      },
+      "required": ["aliases", "selector"],
+      "title": "VocabularyDimensionEntry",
+      "type": "object"
+    },
+    "VocabularyMetricEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "aliases": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Aliases",
+          "type": "array"
+        },
+        "metric_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Metric Id",
+          "type": "string"
+        }
+      },
+      "required": ["aliases", "metric_id"],
+      "title": "VocabularyMetricEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "vocabulary": {
+      "$ref": "#/$defs/VocabularyBody"
+    }
+  },
+  "required": ["vocabulary"],
+  "title": "VocabularyYaml",
+  "type": "object"
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "PoliciesInner": {
+      "additionalProperties": false,
+      "properties": {
+        "columns": {
+          "items": {
+            "$ref": "#/$defs/PolicyColumnYaml"
+          },
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": ["columns"],
+      "title": "PoliciesInner",
+      "type": "object"
+    },
+    "PolicyColumnYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "selector": {
+          "title": "Selector",
+          "type": "string"
+        },
+        "action": {
+          "enum": ["deny", "mask", "redact"],
+          "title": "Action",
+          "type": "string"
+        },
+        "classification": {
+          "anyOf": [
+            {
+              "enum": ["pii", "sensitive", "confidential", "public"],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classification"
+        }
+      },
+      "required": ["selector", "action"],
+      "title": "PolicyColumnYaml",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "policies": {
+      "$ref": "#/$defs/PoliciesInner"
+    }
+  },
+  "required": ["policies"],
+  "title": "PoliciesYaml",
+  "type": "object"
+}

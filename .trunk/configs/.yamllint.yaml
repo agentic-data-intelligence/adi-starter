@@ -1,0 +1,9 @@
+rules:
+  quoted-strings: disable
+  key-duplicates: {}
+  octal-values:
+    forbid-implicit-octal: true
+  line-length:
+    max: 200
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true

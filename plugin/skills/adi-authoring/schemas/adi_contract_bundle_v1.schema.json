@@ -1,0 +1,1492 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "AdiContractDatasource": {
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "enum": [
+            "databricks",
+            "spark",
+            "snowflake",
+            "bigquery",
+            "postgres",
+            "duckdb",
+            "other"
+          ],
+          "title": "Engine",
+          "type": "string"
+        },
+        "default_catalog": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Default Catalog",
+          "type": "string"
+        },
+        "default_schema": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Default Schema",
+          "type": "string"
+        },
+        "sql_dialect": {
+          "enum": [
+            "spark",
+            "snowflake",
+            "bigquery",
+            "postgres",
+            "ansi",
+            "other"
+          ],
+          "title": "Sql Dialect",
+          "type": "string"
+        }
+      },
+      "required": [
+        "engine",
+        "default_catalog",
+        "default_schema",
+        "sql_dialect"
+      ],
+      "title": "AdiContractDatasource",
+      "type": "object"
+    },
+    "AdiContractDefaults": {
+      "additionalProperties": false,
+      "properties": {
+        "timezone": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Timezone",
+          "type": "string"
+        },
+        "currency": {
+          "title": "Currency",
+          "type": "string"
+        },
+        "row_limit": {
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Row Limit",
+          "type": "integer"
+        }
+      },
+      "required": ["timezone", "currency", "row_limit"],
+      "title": "AdiContractDefaults",
+      "type": "object"
+    },
+    "AdiContractGovernance": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_entities": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Entities"
+        },
+        "allowed_metrics": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Metrics"
+        }
+      },
+      "title": "AdiContractGovernance",
+      "type": "object"
+    },
+    "AdiContractRuleset": {
+      "additionalProperties": false,
+      "properties": {
+        "missing_data_rule": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Data Rule"
+        },
+        "guardrails": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Guardrails"
+        }
+      },
+      "title": "AdiContractRuleset",
+      "type": "object"
+    },
+    "ContractYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "adi_contract_version": {
+          "const": "1.0",
+          "title": "Adi Contract Version",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "datasource": {
+          "$ref": "#/$defs/AdiContractDatasource"
+        },
+        "defaults": {
+          "$ref": "#/$defs/AdiContractDefaults"
+        },
+        "governance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AdiContractGovernance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "selector_convention": {
+          "const": "entity_column",
+          "default": "entity_column",
+          "title": "Selector Convention",
+          "type": "string"
+        },
+        "ruleset": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AdiContractRuleset"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "self_check": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SelfCheckBlock"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional generator-time assertions that downstream validators can replay to confirm contract-time invariants still hold (PK uniqueness, FX coverage, etc.). Loaders that don't understand the section MUST ignore it."
+        }
+      },
+      "required": [
+        "adi_contract_version",
+        "contract_id",
+        "title",
+        "datasource",
+        "defaults"
+      ],
+      "title": "ContractYaml",
+      "type": "object"
+    },
+    "EntitiesYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "entities": {
+          "items": {
+            "$ref": "#/$defs/EntityYaml"
+          },
+          "minItems": 1,
+          "title": "Entities",
+          "type": "array"
+        }
+      },
+      "required": ["entities"],
+      "title": "EntitiesYaml",
+      "type": "object"
+    },
+    "EntityColumn": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "string",
+            "boolean",
+            "integer",
+            "number",
+            "decimal",
+            "date",
+            "timestamp",
+            "json"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        }
+      },
+      "required": ["name", "type"],
+      "title": "EntityColumn",
+      "type": "object"
+    },
+    "EntityTime": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "Canonical",
+          "type": "string"
+        },
+        "candidates": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidates"
+        }
+      },
+      "required": ["canonical"],
+      "title": "EntityTime",
+      "type": "object"
+    },
+    "EntityYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": ["fact", "dimension", "bridge"],
+          "title": "Kind",
+          "type": "string"
+        },
+        "physical": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Physical",
+          "type": "string"
+        },
+        "primary_key": {
+          "description": "Warehouse-unique row key. On bronze/CDC tables this may be a technical lineage id (e.g. source_record_id); a separate column may be the business natural key. Do not treat PK alone as the business identifier when both exist—align metrics, counts, and vocabulary with the analytical grain / natural key the contract describes.",
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Primary Key",
+          "type": "array"
+        },
+        "grain": {
+          "description": "Analytical grain (often equals primary_key). Prefer the business grain when the fact represents business objects and the PK is technical-only; align count_distinct and metric titles with that choice.",
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Grain",
+          "type": "array"
+        },
+        "unique_keys": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Declared unique keys for the entity (especially dimensions). Each unique key is a list of column names. Used by `require_dim_unique_on_join_key` to verify that joins do not fan out through non-unique dimension keys.",
+          "title": "Unique Keys"
+        },
+        "time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EntityTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "row_scope": {
+          "anyOf": [
+            {
+              "enum": [
+                "raw_all_rows",
+                "current_non_deleted",
+                "latest_by_pk",
+                "event_log"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which physical rows belong in analytics when CDC/soft-delete/SCD markers exist. For latest_by_pk, document how 'latest' is resolved unless the warehouse encodes it in a view: default tie-break preference is updated_at, then ingest time (_ingest_time or equivalent), then created_at; use another ordering only when metadata or DAL states it explicitly.",
+          "title": "Row Scope"
+        },
+        "columns": {
+          "items": {
+            "$ref": "#/$defs/EntityColumn"
+          },
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "joins": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/JoinEdge"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Joins"
+        }
+      },
+      "required": ["id", "kind", "physical", "primary_key", "grain", "columns"],
+      "title": "EntityYaml",
+      "type": "object"
+    },
+    "FxRateDate": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "cast": {
+          "const": "date",
+          "title": "Cast",
+          "type": "string"
+        }
+      },
+      "required": ["ref", "cast"],
+      "title": "FxRateDate",
+      "type": "object"
+    },
+    "FxRuleYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "rate_entity": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Rate Entity",
+          "type": "string"
+        },
+        "rate_date": {
+          "$ref": "#/$defs/FxRateDate"
+        },
+        "base_currency_ref": {
+          "title": "Base Currency Ref",
+          "type": "string"
+        },
+        "quote_currency": {
+          "title": "Quote Currency",
+          "type": "string"
+        },
+        "rate_column": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "Rate Column",
+          "type": "string"
+        },
+        "on_missing": {
+          "enum": ["refuse", "null", "warn_null"],
+          "title": "On Missing",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "rate_entity",
+        "rate_date",
+        "base_currency_ref",
+        "quote_currency",
+        "rate_column",
+        "on_missing"
+      ],
+      "title": "FxRuleYaml",
+      "type": "object"
+    },
+    "GuardrailYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "max_rows_returned": {
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Max Rows Returned",
+          "type": "integer"
+        },
+        "max_query_seconds": {
+          "maximum": 600,
+          "minimum": 1,
+          "title": "Max Query Seconds",
+          "type": "integer"
+        },
+        "cardinality_mode": {
+          "enum": ["heuristic", "estimate", "profile"],
+          "title": "Cardinality Mode",
+          "type": "string"
+        },
+        "max_distinct_for_group_by": {
+          "maximum": 10000000,
+          "minimum": 1,
+          "title": "Max Distinct For Group By",
+          "type": "integer"
+        },
+        "high_cardinality_group_by_mode": {
+          "enum": ["refuse", "warn", "allow"],
+          "title": "High Cardinality Group By Mode",
+          "type": "string"
+        },
+        "forbid_nm_join_without_bridge": {
+          "title": "Forbid Nm Join Without Bridge",
+          "type": "boolean"
+        },
+        "require_dim_unique_on_join_key": {
+          "title": "Require Dim Unique On Join Key",
+          "type": "boolean"
+        },
+        "allow_sql_verbs": {
+          "items": {
+            "const": "select",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allow Sql Verbs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "max_rows_returned",
+        "max_query_seconds",
+        "cardinality_mode",
+        "max_distinct_for_group_by",
+        "high_cardinality_group_by_mode",
+        "forbid_nm_join_without_bridge",
+        "require_dim_unique_on_join_key",
+        "allow_sql_verbs"
+      ],
+      "title": "GuardrailYaml",
+      "type": "object"
+    },
+    "JoinEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "to": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "To",
+          "type": "string"
+        },
+        "on": {
+          "items": {
+            "$ref": "#/$defs/JoinOnPair"
+          },
+          "minItems": 1,
+          "title": "On",
+          "type": "array"
+        },
+        "cardinality": {
+          "enum": ["1:1", "1:n", "n:1", "n:m"],
+          "title": "Cardinality",
+          "type": "string"
+        },
+        "join_role": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Required when multiple joins target the same entity; disambiguates roles for generators.",
+          "title": "Join Role"
+        },
+        "required": {
+          "default": false,
+          "description": "When true, INNER JOIN; else LEFT JOIN.",
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": ["to", "on", "cardinality"],
+      "title": "JoinEdge",
+      "type": "object"
+    },
+    "JoinOnPair": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "To",
+          "type": "string"
+        }
+      },
+      "required": ["from", "to"],
+      "title": "JoinOnPair",
+      "type": "object"
+    },
+    "MetricDefaultFilter": {
+      "additionalProperties": false,
+      "description": "WHERE predicate applied in addition to intent filters when compiling this metric (e.g. status = succeeded).",
+      "properties": {
+        "entity_ref": {
+          "title": "Entity Ref",
+          "type": "string"
+        },
+        "operator": {
+          "description": "SQL-style operator, uppercased by runtime.",
+          "enum": [
+            "=",
+            "!=",
+            "<>",
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "LIKE",
+            "ILIKE",
+            "IN",
+            "NOT IN",
+            "BETWEEN"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scalar or list for IN/NOT IN/BETWEEN; null if operator allows (discouraged).",
+          "title": "Value"
+        }
+      },
+      "required": ["entity_ref", "operator"],
+      "title": "MetricDefaultFilter",
+      "type": "object"
+    },
+    "MetricExpression": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": ["sum", "count_distinct"]
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["value"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "count"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ratio"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "numerator": {
+                "properties": {
+                  "type": {
+                    "const": "sum"
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "value"],
+                "type": "object"
+              },
+              "denominator": {
+                "properties": {
+                  "type": {
+                    "const": "count_distinct"
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "value"],
+                "type": "object"
+              }
+            },
+            "required": ["numerator", "denominator"]
+          }
+        }
+      ],
+      "properties": {
+        "type": {
+          "enum": ["sum", "count", "count_distinct", "ratio"],
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "numerator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetricRatioOperand"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "denominator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetricRatioOperand"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": ["type"],
+      "title": "MetricExpression",
+      "type": "object"
+    },
+    "MetricRatioOperand": {
+      "additionalProperties": false,
+      "description": "Single aggregate inside a ``type: ratio`` metric expression.",
+      "properties": {
+        "type": {
+          "enum": ["sum", "count_distinct"],
+          "title": "Type",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": ["type", "value"],
+      "title": "MetricRatioOperand",
+      "type": "object"
+    },
+    "MetricTime": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical": {
+          "title": "Canonical",
+          "type": "string"
+        }
+      },
+      "required": ["canonical"],
+      "title": "MetricTime",
+      "type": "object"
+    },
+    "MetricUnit": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "currency"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "code": {
+                "description": "ISO 4217 currency code (e.g. USD, EUR, XXX); required when kind is currency.",
+                "maxLength": 8,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["code"]
+          }
+        }
+      ],
+      "properties": {
+        "kind": {
+          "enum": ["currency", "count", "unitless"],
+          "title": "Kind",
+          "type": "string"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ISO 4217 alphabetic code when unit.kind=currency (required in that case). Use XXX when rows carry mixed source currencies and the metric is local (amount_semantics=local) with currency_column_ref — not a substitute for USD normalization. Omit or null when kind is count or unitless.",
+          "title": "Code"
+        },
+        "fx_rule": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fx Rule"
+        }
+      },
+      "required": ["kind"],
+      "title": "MetricUnit",
+      "type": "object"
+    },
+    "MetricYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "metric_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "base_entity": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Base Entity",
+          "type": "string"
+        },
+        "time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetricTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MetricUnit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "expression": {
+          "$ref": "#/$defs/MetricExpression"
+        },
+        "additivity": {
+          "anyOf": [
+            {
+              "enum": ["additive", "semi_additive", "non_additive"],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Additivity"
+        },
+        "allowed_group_bys": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Group Bys"
+        },
+        "disallowed_group_bys": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Disallowed Group Bys"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 500,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "scope_note": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explains metric scope when title implies a filter the expression does not encode.",
+          "title": "Scope Note"
+        },
+        "default_filters": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/MetricDefaultFilter"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Predicates always applied to this metric in generated SQL, before intent-level filters.",
+          "title": "Default Filters"
+        },
+        "amount_semantics": {
+          "anyOf": [
+            {
+              "enum": ["local", "normalized"],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "local = source row currency; normalized = converted to a reference currency (USD).",
+          "title": "Amount Semantics"
+        },
+        "currency_column_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Entity.column for the currency that denominates the summed amount columns. When both currency and billing_currency (or similar) exist, reference the column that matches the amount fields unless the warehouse/DAL states amounts are in billing currency—in that case use billing_currency and note it in scope_note.",
+          "title": "Currency Column Ref"
+        },
+        "normalization_ref": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "FX path: entity.column, or prefixed fx_rule:, fx_column:, fx_table:. May be followed by ``;<modifier>=<value>`` pairs. ``cast=double`` is an abstract hint for per-row fx_column multiplication (see contract_semantics). For ``fx_table:<physical_table>``, ``as_of=<entity.column>`` is required (valuation date on the metric's join path); optional ``quote=USD`` (default USD at runtime if omitted), ``base=USD`` (identity / same-currency rows), and ``rate_date_col`` / ``base_currency_col`` / ``quote_currency_col`` / ``rate_col`` when the FX table does not use the standard names rate_date, base_currency, quote_currency, rate. Execution semantics are implemented in ``adi-core`` (``adi_core.sql.fx``, ``adi_core.sql.compiler``) — see schemas/README.md.",
+          "title": "Normalization Ref"
+        }
+      },
+      "required": ["metric_id", "title", "base_entity", "expression"],
+      "title": "MetricYaml",
+      "type": "object"
+    },
+    "MetricsYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/MetricYaml"
+          },
+          "minItems": 1,
+          "title": "Metrics",
+          "type": "array"
+        }
+      },
+      "required": ["metrics"],
+      "title": "MetricsYaml",
+      "type": "object"
+    },
+    "MissingDataRuleYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "unknown_metric": {
+          "enum": ["clarify", "refuse"],
+          "title": "Unknown Metric",
+          "type": "string"
+        },
+        "missing_canonical_time": {
+          "const": "refuse",
+          "title": "Missing Canonical Time",
+          "type": "string"
+        },
+        "missing_join_path": {
+          "const": "refuse",
+          "title": "Missing Join Path",
+          "type": "string"
+        },
+        "missing_required_dimension": {
+          "const": "refuse",
+          "title": "Missing Required Dimension",
+          "type": "string"
+        },
+        "missing_fx_rate": {
+          "enum": ["inherit", "refuse", "null", "warn_null"],
+          "title": "Missing Fx Rate",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "unknown_metric",
+        "missing_canonical_time",
+        "missing_join_path",
+        "missing_required_dimension",
+        "missing_fx_rate"
+      ],
+      "title": "MissingDataRuleYaml",
+      "type": "object"
+    },
+    "PoliciesInner": {
+      "additionalProperties": false,
+      "properties": {
+        "columns": {
+          "items": {
+            "$ref": "#/$defs/PolicyColumnYaml"
+          },
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": ["columns"],
+      "title": "PoliciesInner",
+      "type": "object"
+    },
+    "PoliciesYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "policies": {
+          "$ref": "#/$defs/PoliciesInner"
+        }
+      },
+      "required": ["policies"],
+      "title": "PoliciesYaml",
+      "type": "object"
+    },
+    "PolicyColumnYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "selector": {
+          "title": "Selector",
+          "type": "string"
+        },
+        "action": {
+          "enum": ["deny", "mask", "redact"],
+          "title": "Action",
+          "type": "string"
+        },
+        "classification": {
+          "anyOf": [
+            {
+              "enum": ["pii", "sensitive", "confidential", "public"],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classification"
+        }
+      },
+      "required": ["selector", "action"],
+      "title": "PolicyColumnYaml",
+      "type": "object"
+    },
+    "RulesYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "adi_contract_version": {
+          "const": "1.0",
+          "title": "Adi Contract Version",
+          "type": "string"
+        },
+        "fx_rules": {
+          "items": {
+            "$ref": "#/$defs/FxRuleYaml"
+          },
+          "title": "Fx Rules",
+          "type": "array"
+        },
+        "missing_data_rules": {
+          "items": {
+            "$ref": "#/$defs/MissingDataRuleYaml"
+          },
+          "title": "Missing Data Rules",
+          "type": "array"
+        },
+        "guardrails": {
+          "items": {
+            "$ref": "#/$defs/GuardrailYaml"
+          },
+          "title": "Guardrails",
+          "type": "array"
+        }
+      },
+      "required": ["adi_contract_version"],
+      "title": "RulesYaml",
+      "type": "object"
+    },
+    "SelfCheckAssertion": {
+      "additionalProperties": false,
+      "description": "A single replayable assertion the seeder emits at generation time.\n\nEach assertion is a small, dialect-agnostic SQL probe paired with an expected\nqualitative outcome. Downstream validators (or the runtime) can replay them to\nconfirm a generator-time invariant still holds (e.g. PK uniqueness, FX coverage)\nwithout re-deriving the invariant themselves. Assertions are *advisory*:\ncontract loaders that don't understand the section MUST ignore it; loaders that\ndo understand it MUST treat assertion failures as warnings unless the consumer\nexplicitly opts into hard-fail.\n\nFields:\n\n- ``name`` — snake_case identifier, unique within the contract.\n- ``description`` — optional human-readable explanation.\n- ``concern`` — short stable category id (e.g. ``primary_key_unique``,\n  ``fx_column_non_null``) so consumers can group / filter without parsing names.\n- ``sql`` — single statement returning exactly one row with one column. Should\n  be portable across the engines listed in :data:`Engine`; complex\n  dialect-specific assertions belong in a separate runtime-bound section, not\n  in the contract itself.\n- ``expect`` — qualitative expected outcome of the single returned scalar:\n  ``true`` / ``false`` for boolean returns, ``zero`` / ``non_zero`` for counts.",
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "concern": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Concern",
+          "type": "string"
+        },
+        "sql": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Sql",
+          "type": "string"
+        },
+        "expect": {
+          "enum": ["true", "false", "non_zero", "zero"],
+          "title": "Expect",
+          "type": "string"
+        }
+      },
+      "required": ["name", "concern", "sql", "expect"],
+      "title": "SelfCheckAssertion",
+      "type": "object"
+    },
+    "SelfCheckBlock": {
+      "additionalProperties": false,
+      "description": "Container for the ``self_check`` block on ``contract.yaml``.",
+      "properties": {
+        "assertions": {
+          "items": {
+            "$ref": "#/$defs/SelfCheckAssertion"
+          },
+          "title": "Assertions",
+          "type": "array"
+        }
+      },
+      "title": "SelfCheckBlock",
+      "type": "object"
+    },
+    "VocabularyBody": {
+      "additionalProperties": false,
+      "properties": {
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/VocabularyMetricEntry"
+          },
+          "title": "Metrics",
+          "type": "array"
+        },
+        "dimensions": {
+          "items": {
+            "$ref": "#/$defs/VocabularyDimensionEntry"
+          },
+          "title": "Dimensions",
+          "type": "array"
+        }
+      },
+      "required": ["metrics", "dimensions"],
+      "title": "VocabularyBody",
+      "type": "object"
+    },
+    "VocabularyDimensionEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "aliases": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Aliases",
+          "type": "array"
+        },
+        "selector": {
+          "title": "Selector",
+          "type": "string"
+        }
+      },
+      "required": ["aliases", "selector"],
+      "title": "VocabularyDimensionEntry",
+      "type": "object"
+    },
+    "VocabularyMetricEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "aliases": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Aliases",
+          "type": "array"
+        },
+        "metric_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Metric Id",
+          "type": "string"
+        }
+      },
+      "required": ["aliases", "metric_id"],
+      "title": "VocabularyMetricEntry",
+      "type": "object"
+    },
+    "VocabularyYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "vocabulary": {
+          "$ref": "#/$defs/VocabularyBody"
+        }
+      },
+      "required": ["vocabulary"],
+      "title": "VocabularyYaml",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Structured ADI Contract v1 bundle (same documents as ``adi-contract`` bundle schema).",
+  "properties": {
+    "contract.yaml": {
+      "$ref": "#/$defs/ContractYaml"
+    },
+    "entities.yaml": {
+      "$ref": "#/$defs/EntitiesYaml"
+    },
+    "metrics.yaml": {
+      "$ref": "#/$defs/MetricsYaml"
+    },
+    "vocabulary.yaml": {
+      "$ref": "#/$defs/VocabularyYaml"
+    },
+    "policies.yaml": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PoliciesYaml"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "rules.yaml": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RulesYaml"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "contract.yaml",
+    "entities.yaml",
+    "metrics.yaml",
+    "vocabulary.yaml"
+  ],
+  "title": "AdiContractBundle",
+  "type": "object"
+}

@@ -1,0 +1,17 @@
+# Copyright 2026 Agentic Data Intelligence SA
+# SPDX-License-Identifier: Apache-2.0
+
+version: 2
+
+updates:
+  # GitHub Actions are this repo's only dependencies (pinned by SHA in .github/workflows/).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 14

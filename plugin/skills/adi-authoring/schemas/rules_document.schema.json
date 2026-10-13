@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "FxRateDate": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "cast": {
+          "const": "date",
+          "title": "Cast",
+          "type": "string"
+        }
+      },
+      "required": ["ref", "cast"],
+      "title": "FxRateDate",
+      "type": "object"
+    },
+    "FxRuleYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "rate_entity": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Rate Entity",
+          "type": "string"
+        },
+        "rate_date": {
+          "$ref": "#/$defs/FxRateDate"
+        },
+        "base_currency_ref": {
+          "title": "Base Currency Ref",
+          "type": "string"
+        },
+        "quote_currency": {
+          "title": "Quote Currency",
+          "type": "string"
+        },
+        "rate_column": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "Rate Column",
+          "type": "string"
+        },
+        "on_missing": {
+          "enum": ["refuse", "null", "warn_null"],
+          "title": "On Missing",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "rate_entity",
+        "rate_date",
+        "base_currency_ref",
+        "quote_currency",
+        "rate_column",
+        "on_missing"
+      ],
+      "title": "FxRuleYaml",
+      "type": "object"
+    },
+    "GuardrailYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "max_rows_returned": {
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Max Rows Returned",
+          "type": "integer"
+        },
+        "max_query_seconds": {
+          "maximum": 600,
+          "minimum": 1,
+          "title": "Max Query Seconds",
+          "type": "integer"
+        },
+        "cardinality_mode": {
+          "enum": ["heuristic", "estimate", "profile"],
+          "title": "Cardinality Mode",
+          "type": "string"
+        },
+        "max_distinct_for_group_by": {
+          "maximum": 10000000,
+          "minimum": 1,
+          "title": "Max Distinct For Group By",
+          "type": "integer"
+        },
+        "high_cardinality_group_by_mode": {
+          "enum": ["refuse", "warn", "allow"],
+          "title": "High Cardinality Group By Mode",
+          "type": "string"
+        },
+        "forbid_nm_join_without_bridge": {
+          "title": "Forbid Nm Join Without Bridge",
+          "type": "boolean"
+        },
+        "require_dim_unique_on_join_key": {
+          "title": "Require Dim Unique On Join Key",
+          "type": "boolean"
+        },
+        "allow_sql_verbs": {
+          "items": {
+            "const": "select",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allow Sql Verbs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "max_rows_returned",
+        "max_query_seconds",
+        "cardinality_mode",
+        "max_distinct_for_group_by",
+        "high_cardinality_group_by_mode",
+        "forbid_nm_join_without_bridge",
+        "require_dim_unique_on_join_key",
+        "allow_sql_verbs"
+      ],
+      "title": "GuardrailYaml",
+      "type": "object"
+    },
+    "MissingDataRuleYaml": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "unknown_metric": {
+          "enum": ["clarify", "refuse"],
+          "title": "Unknown Metric",
+          "type": "string"
+        },
+        "missing_canonical_time": {
+          "const": "refuse",
+          "title": "Missing Canonical Time",
+          "type": "string"
+        },
+        "missing_join_path": {
+          "const": "refuse",
+          "title": "Missing Join Path",
+          "type": "string"
+        },
+        "missing_required_dimension": {
+          "const": "refuse",
+          "title": "Missing Required Dimension",
+          "type": "string"
+        },
+        "missing_fx_rate": {
+          "enum": ["inherit", "refuse", "null", "warn_null"],
+          "title": "Missing Fx Rate",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "unknown_metric",
+        "missing_canonical_time",
+        "missing_join_path",
+        "missing_required_dimension",
+        "missing_fx_rate"
+      ],
+      "title": "MissingDataRuleYaml",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "adi_contract_version": {
+      "const": "1.0",
+      "title": "Adi Contract Version",
+      "type": "string"
+    },
+    "fx_rules": {
+      "items": {
+        "$ref": "#/$defs/FxRuleYaml"
+      },
+      "title": "Fx Rules",
+      "type": "array"
+    },
+    "missing_data_rules": {
+      "items": {
+        "$ref": "#/$defs/MissingDataRuleYaml"
+      },
+      "title": "Missing Data Rules",
+      "type": "array"
+    },
+    "guardrails": {
+      "items": {
+        "$ref": "#/$defs/GuardrailYaml"
+      },
+      "title": "Guardrails",
+      "type": "array"
+    }
+  },
+  "required": ["adi_contract_version"],
+  "title": "RulesYaml",
+  "type": "object"
+}

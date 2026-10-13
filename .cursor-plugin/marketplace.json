@@ -1,0 +1,38 @@
+{
+  "name": "adi",
+  "owner": {
+    "name": "Agentic Data Intelligence SA"
+  },
+  "metadata": {
+    "description": "Agentic Data Intelligence Starter Edition: contract-governed querying + ADI Contract authoring, bundled with the ADI MCP server.",
+    "version": "1.0.9"
+  },
+  "plugins": [
+    {
+      "name": "adi",
+      "source": "./plugin",
+      "description": "Agentic Data Intelligence - Starter Edition. ADI Contract v1 authoring and contract-governed analytical querying Skills, bundled with the ADI Starter Edition MCP server. Machine readable documentation index for Agents at https://docs.agentic-data.com/llms.txt",
+      "version": "1.0.9",
+      "author": { "name": "Agentic Data Intelligence SA" },
+      "homepage": "https://agentic-data.com",
+      "repository": "https://github.com/agentic-data-intelligence/adi-starter",
+      "license": "Apache-2.0",
+      "keywords": [
+        "data",
+        "analytics",
+        "sql",
+        "text-to-sql",
+        "metrics",
+        "business-intelligence",
+        "semantic-layer",
+        "data-governance",
+        "governance",
+        "contract",
+        "ai-agents",
+        "mcp",
+        "adi",
+        "starter-edition"
+      ]
+    }
+  ]
+}

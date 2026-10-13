@@ -1,0 +1,7 @@
+# Mirrors adi-starter-private's rule set for the CI helper scripts in .github/scripts/.
+line-length = 120
+target-version = "py313"
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "PTH"]
+ignore = ["E501"]

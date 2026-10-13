@@ -1,0 +1,37 @@
+{
+  "name": "adi",
+  "interface": {
+    "displayName": "ADI"
+  },
+  "plugins": [
+    {
+      "name": "adi",
+      "source": {
+        "source": "local",
+        "path": "./plugin"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity",
+      "license": "Apache-2.0",
+      "keywords": [
+        "data",
+        "analytics",
+        "sql",
+        "text-to-sql",
+        "metrics",
+        "business-intelligence",
+        "semantic-layer",
+        "data-governance",
+        "governance",
+        "contract",
+        "ai-agents",
+        "mcp",
+        "adi",
+        "starter-edition"
+      ]
+    }
+  ]
+}
