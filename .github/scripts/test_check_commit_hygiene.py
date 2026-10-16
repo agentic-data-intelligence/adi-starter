@@ -2,11 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """Fixtures for check_commit_hygiene.py: what must be caught, and what must pass.
 
-The ATTRIBUTION cases cover every attribution form found in this org's commit
-messages and PR descriptions (a scan of 938 commits and 837 PRs across 13
-repos, 2026-10-05), plus variants of them. The ALLOWED cases mirror the kinds
-of legitimate mentions that scan found. Both are synthetic stand-ins: lines
-from private repos are deliberately not copied here.
+The ATTRIBUTION cases cover the attribution forms AI coding tools write into
+commit messages and PR descriptions, plus variants of them. The ALLOWED cases
+are legitimate mentions that must pass. Both are synthetic.
 
 Run: python3 .github/scripts/test_check_commit_hygiene.py
 """
@@ -85,8 +83,8 @@ ALLOWED = [
     "see https://platform.claude.com/docs/en/about-claude/pricing",
     "Smoke-test against both an OpenAI and an Anthropic model string.",
     "Updates the Claude Code and Cursor install steps.",
-    "Co-Authored-By: Riccardo Maganza <18355062+rmaganza@users.noreply.github.com>",
-    "Reviewed-by: Tomek Mierzwa <12345+tmierzwa@users.noreply.github.com>",
+    "Co-Authored-By: Ada Example <10000001+ada-example@users.noreply.github.com>",
+    "Reviewed-by: Ben Example <10000002+ben-example@users.noreply.github.com>",
 ]
 
 
@@ -108,7 +106,7 @@ class ForbiddenPatterns(unittest.TestCase):
                 "",
                 "Body explains the change.",
                 "",
-                "Co-Authored-By: Riccardo Maganza <18355062+rmaganza@users.noreply.github.com>",
+                "Co-Authored-By: Ada Example <10000001+ada-example@users.noreply.github.com>",
                 "Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
                 f"Claude-Session: {SESSION}",
                 "🤖 Generated with [Claude Code](https://claude.com/claude-code)",
@@ -117,11 +115,11 @@ class ForbiddenPatterns(unittest.TestCase):
         cleaned = hygiene.clean_message(message)
         self.assertEqual(hygiene.forbidden_in(cleaned), [])
         self.assertIn("Body explains the change.", cleaned)
-        self.assertIn("rmaganza@users.noreply.github.com", cleaned)
+        self.assertIn("ada-example@users.noreply.github.com", cleaned)
 
     def test_noreply_emails(self) -> None:
         for email in [
-            "4840419+darkxeno@users.noreply.github.com",
+            "10000003+cy-example@users.noreply.github.com",
             "noreply@github.com",
             "x[bot]@users.noreply.github.com",
         ]:

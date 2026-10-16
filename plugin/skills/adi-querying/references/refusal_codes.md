@@ -50,5 +50,5 @@ Some ambiguous inputs return candidate lists (e.g. `metric_ambiguous.matches`, `
 If `adi.*` tools are unavailable:
 
 1. Verify MCP server connectivity.
-2. Confirm authentication — re-run the client's MCP OAuth login (e.g. `claude mcp login adi`) if the session expired.
+2. Confirm authentication: if the session expired, sign in again through the client (in Claude Code, type `/mcp`, select `adi` and authenticate; in Claude Cowork, reconnect the `adi` connector from the plugin's Connectors tab; in Codex, run `codex mcp login adi`; in Cursor, approve its sign-in prompt).
 3. Report the issue; do not fall back to handwritten SQL.

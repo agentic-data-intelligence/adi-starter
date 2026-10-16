@@ -1,4 +1,4 @@
-# Mirrors adi-starter-private's rule set for the CI helper scripts in .github/scripts/.
+# Ruff rule set for the CI helper scripts in .github/scripts/.
 line-length = 120
 target-version = "py313"
 

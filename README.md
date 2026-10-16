@@ -5,16 +5,19 @@ Copyright 2026 Agentic Data Intelligence SA
 
 # ADI Starter
 
+**Status: Closed Beta.** Starter Edition is in Closed Beta: access is by invitation, and you should expect changes and fixes while the Beta runs. See the [documentation](https://docs.agentic-data.com) for setup and current limitations.
+
 **Contract-governed analytics for AI agents.** This repository packages the ADI skills
-and the ADI MCP server as a single plugin you can install into Claude Code, Codex, or
-Cursor — or drop the skills into any agent that supports [Agent Skills](https://agentskills.io).
+and the ADI MCP server as a single plugin you can install into Claude Code (+ Cowork),
+Cursor, and Codex, or drop the skills into any agent that supports
+[Agent Skills](https://agentskills.io).
 
 Two skills ship together:
 
 - **`adi-querying`** — turns metric / KPI / dimension questions into deterministic,
   contract-governed SQL via the ADI MCP tools (`adi.get_capabilities` →
   `adi.generate_query`). No natural language ever goes on the wire; every query is
-  generated against your ADI contract. The hosted Beta endpoint is trust tier T1 and
+  generated against your ADI contract. The hosted Beta endpoint is trust tier `t1` and
   generation-only: it returns the SQL for you to run against your own warehouse. On an
   execution tier (a server that reports `features.execute_sql`), queries can also run
   through `adi.execute_sql`, and that SQL is cryptographically signed.
@@ -27,7 +30,7 @@ MCP endpoint.
 
 ## Install as a plugin
 
-The plugin registers **both skills and the ADI MCP server** in one step.
+The plugin registers **both skills and the ADI MCP server** in one step (in Claude Cowork you also add the connector, as below).
 
 ### Claude Code
 
@@ -38,11 +41,18 @@ The plugin registers **both skills and the ADI MCP server** in one step.
 
 Verify with `/skills` and `/mcp`.
 
+### Claude Cowork
+
+In the Claude desktop app, open **Customize > Plugins**, select **Add > Add marketplace**, enter `https://github.com/agentic-data-intelligence/adi-starter`, then add the ADI plugin. Then open the plugin's **Connectors** tab to add and connect the `adi` connector; on Team and Enterprise plans an Owner adds it for the organisation. If you are not an Owner, ask your admin to add it, then connect it with your own account. Full steps: [Getting Started, Using ADI in Claude Cowork](https://docs.agentic-data.com/docs/starter-edition/getting-started).
+
+Cowork, in the Claude desktop app, uses the same ADI plugin as Claude Code: there is one Claude plugin, not one for each. If you use both, install ADI in the app. A plugin added there is saved to your Claude account, so it is available in Cowork and in Claude Code, both in the desktop app and on the command line. A plugin installed from the Claude Code command line is available in Claude Code only, not in Cowork. Installing in both places can load more than one copy of the ADI tools, and it is not obvious which one your agent is calling.
+
 ### Codex
 
 ```bash
 codex plugin marketplace add agentic-data-intelligence/adi-starter
-# then, in Codex, install the `adi` plugin and restart; verify with /skills and /mcp
+codex plugin add adi@adi
+# then restart Codex; verify with /skills and /mcp
 ```
 
 ### Cursor
@@ -60,9 +70,10 @@ cp -R plugin/. ~/.cursor/plugins/local/adi/
 ```
 
 Restart Cursor, or run **Developer: Reload Window**, then open **Customize** and
-confirm the `adi` skills and MCP server are listed. On Teams and Enterprise, local
-plugins load only if an admin has enabled **Allow Local Plugin Imports** (off by default
-on Enterprise).
+confirm the `adi` skills and MCP server are listed. On Teams and Enterprise plans, an
+admin controls whether local plugins load, with **Allow Local Plugin Imports**
+(Dashboard > Settings > Security & Identity > Marketplace and Plugins). It is off by
+default on Enterprise.
 
 The copy doesn't follow the repository. To update, pull and re-copy, then reload:
 
@@ -72,6 +83,10 @@ rm -rf ~/.cursor/plugins/local/adi
 mkdir -p ~/.cursor/plugins/local/adi
 cp -R plugin/. ~/.cursor/plugins/local/adi/
 ```
+
+### Other agents
+
+For OpenClaw, Manus, and any other coding agents that support either the Open Plugins Specification or the Agent Skills Specification: copy the two Skill folders (`adi-querying` and `adi-authoring`, in `plugin/skills/`) into your agent's skills directory, then configure the ADI MCP server as shown in [docs/mcp-clients.md](docs/mcp-clients.md). For an Open Plugins host, the plugin's Open Plugins manifest is at `plugin/.plugin/plugin.json`. To install the Skills with the `skills` CLI instead of copying them, see [Use as a skills source](#use-as-a-skills-source).
 
 Full per-host notes: [plugin/README.md](plugin/README.md).
 
@@ -104,8 +119,9 @@ MCP server separately (see [docs/mcp-clients.md](docs/mcp-clients.md)).
 
 The ADI MCP server uses OAuth: `.mcp.json` ships with no credentials, so the
 hosted service opens a Zitadel browser login on first connect — nothing to configure.
-Run `claude mcp login adi` (Claude Code) or `codex mcp login adi` (Codex), or approve
-Cursor's in-app prompt, then complete the login in the browser.
+To start the sign-in in Claude Code, type `/mcp` in a session, select `adi` and authenticate. Run `codex mcp login adi` in Codex, or approve the prompt Cursor shows when the server first connects. Then complete the login in your browser. In Cowork you connect from the plugin's Connectors tab instead (see Using ADI in Claude Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
+
+If a Claude Code session that was already open when you signed in does not show the ADI tools, type `/mcp` in that session too, select `adi` and authenticate.
 
 Details and per-client config: [docs/mcp-clients.md](docs/mcp-clients.md).
 
@@ -130,6 +146,10 @@ adi-starter/
 - **Machine-readable docs (for AI agents):** <https://docs.agentic-data.com/llms.txt>
 
 The `llms.txt` file is a structured index pointing to plain-text (`.txt`) versions of every documentation page — use this if you're an agent or tool reading the docs programmatically. A concatenated single-file version of all docs is also available at [`llms-full.txt`](https://docs.agentic-data.com/llms-full.txt).
+
+## Getting help
+
+If this repository does not answer your question, check the [documentation](https://docs.agentic-data.com) first. If that does not solve it, the [Support and Security page](https://docs.agentic-data.com/docs/reference/support) explains how to contact us, and how to report a security issue privately.
 
 ## Contributing
 
