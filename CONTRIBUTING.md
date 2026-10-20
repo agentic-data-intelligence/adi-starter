@@ -46,9 +46,10 @@ These are not skill content — change them deliberately and keep them consisten
   `.agents/plugins/`) — all three point their plugin `source` at `./plugin`.
 - `docs/mcp-clients.md`.
 
-When bumping the plugin version, update it in the three `plugin/.*-plugin/plugin.json` manifests,
-`plugin/plugin.json`, and in the `.claude-plugin/` and `.cursor-plugin/` root `marketplace.json` files (the
-`.agents/plugins/` one has no version field).
+When bumping the plugin version, update it in all four plugin manifests (`plugin/plugin.json`
+and the three `plugin/.*-plugin/plugin.json`) and in the `.claude-plugin/` and
+`.cursor-plugin/` root `marketplace.json` files (the `.agents/plugins/` one has no version
+field).
 
 ## Process
 
