@@ -17,5 +17,5 @@
 .cursor/
 .agents/skills/
 
-# Note: plugin/.mcp.json IS committed — it is the shipped MCP stub, not a secret
+# Note: plugin/mcp.json IS committed — it is the shipped MCP stub, not a secret
 # (it carries no credentials; the hosted service authenticates via browser login).

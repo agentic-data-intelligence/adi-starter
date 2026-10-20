@@ -23,5 +23,5 @@
     "starter-edition"
   ],
   "logo": "assets/adi_logo.png",
-  "mcpServers": "./.mcp.json"
+  "mcpServers": "./mcp.json"
 }

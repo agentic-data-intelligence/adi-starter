@@ -10,6 +10,7 @@
   "homepage": "https://agentic-data.com",
   "repository": "https://github.com/agentic-data-intelligence/adi-starter",
   "license": "Apache-2.0",
+  "mcpServers": "./mcp.json",
   "keywords": [
     "data",
     "analytics",

@@ -5,11 +5,12 @@ Copyright 2026 Agentic Data Intelligence SA
 
 # MCP client configs (ADI hosted)
 
-The `adi` plugin ships the MCP server config in [`plugin/.mcp.json`](../plugin/.mcp.json).
+The `adi` plugin ships the MCP server config in [`plugin/mcp.json`](../plugin/mcp.json), in the
+[Agent Plugins](https://agent-plugins.org) format that every host below reads.
 Installing the plugin registers it automatically (in Claude Cowork you also add the connector; see below). Use the notes below to configure a
 client by hand, or if tools do not register after install.
 
-`.mcp.json` carries no credentials, so every client uses the hosted service's
+`mcp.json` carries no credentials, so every client uses the hosted service's
 OAuth flow — a Zitadel browser login on first connect, with nothing to configure:
 
 - **Claude Code:** type `/mcp` in a session, select `adi` and authenticate, then complete
@@ -22,24 +23,24 @@ OAuth flow — a Zitadel browser login on first connect, with nothing to configu
 - **Codex:** `auth` defaults to `oauth` for HTTP servers — run `codex mcp login adi`
   (Codex opens a local callback listener).
 
-| Client        | File                                    | Where it goes                                                                                                                                                                        |
-| ------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Claude Code   | [plugin/.mcp.json](../plugin/.mcp.json) | Bundled in the `adi` plugin (`/plugin install adi`). Uses OAuth (Zitadel browser login): no credentials to configure (sign in with `/mcp` in a session).                             |
-| Claude Cowork | [plugin/.mcp.json](../plugin/.mcp.json) | Bundled in the `adi` plugin (**Customize > Plugins**). Installing does not add the connector: add and connect `adi` from the plugin's **Connectors** tab.                            |
-| Cursor        | [plugin/.mcp.json](../plugin/.mcp.json) | Cursor's manifest points `mcpServers` at this file; or merge it into `~/.cursor/mcp.json` under `mcpServers`.                                                                        |
-| Codex         | [plugin/.mcp.json](../plugin/.mcp.json) | Bundled in the `adi` plugin (install via `.agents/plugins/marketplace.json`). OAuth (`codex mcp login adi`); for a loose install, add `[mcp_servers.adi]` to `~/.codex/config.toml`. |
+| Client        | File                                  | Where it goes                                                                                                                                                                        |
+| ------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Claude Code   | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (`/plugin install adi`). Uses OAuth (Zitadel browser login): no credentials to configure (sign in with `/mcp` in a session).                             |
+| Claude Cowork | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (**Customize > Plugins**). Installing does not add the connector: add and connect `adi` from the plugin's **Connectors** tab.                            |
+| Cursor        | [plugin/mcp.json](../plugin/mcp.json) | Cursor's manifest points `mcpServers` at this file; or merge it into `~/.cursor/mcp.json` under `mcpServers`.                                                                        |
+| Codex         | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (install via `.agents/plugins/marketplace.json`). OAuth (`codex mcp login adi`); for a loose install, add `[mcp_servers.adi]` to `~/.codex/config.toml`. |
 
-**Claude Code:** use `"type": "http"` in `.mcp.json` (not `"type": "url"`). Restart after
-save; approve trust if prompted.
+**Claude Code:** use `"type": "streamable-http"` (or its Claude Code name, `"http"`), not
+`"type": "url"`. Restart after save; approve trust if prompted.
 
-**Any other MCP client.** Point it at the server URL in `plugin/.mcp.json`. The configuration is a small JSON block naming the server and its URL, for example:
+**Any other MCP client.** Point it at the server URL in `plugin/mcp.json`. The configuration is a small JSON block naming the server and its URL, for example (some clients call this transport `"http"`; check yours):
 
 ```json
 {
   "mcpServers": {
     "adi": {
-      "type": "http",
-      "url": "<the URL in plugin/.mcp.json>"
+      "type": "streamable-http",
+      "url": "<the URL in plugin/mcp.json>"
     }
   }
 }
