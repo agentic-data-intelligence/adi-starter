@@ -15,6 +15,7 @@ compatibility: Claude Code, Claude Cowork, Cursor, OpenClaw, Manus, Codex
 metadata:
   author: agentic-data-intelligence
   version: "1.7.0"
+  short-description: Author and validate an ADI Contract v1 YAML bundle (contract, entities, metrics) from warehouse metadata
   mcp_tools: adi.get_capabilities adi.get_authoring_spec adi.validate adi.generate_query
   mcp_tools_self_hosted: adi.replay_self_check adi.session.configure_scope adi.schema.list_objects adi.schema.get_table adi.schema.get_tables_batch adi.profile.table adi.profile.column adi.schema.create_snapshot
 ---

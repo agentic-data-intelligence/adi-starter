@@ -14,6 +14,7 @@ compatibility: Claude Code, Claude Cowork, Cursor, OpenClaw, Manus, Codex
 metadata:
   author: agentic-data-intelligence
   version: "2.7.0"
+  short-description: Answer metric and KPI questions about business data with contract-governed SQL from ADI
   mcp_tools: adi.get_capabilities adi.generate_query adi.validate
   mcp_tools_self_hosted: adi.execute_sql
 ---
