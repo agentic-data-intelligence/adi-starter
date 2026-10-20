@@ -9,23 +9,13 @@ description: >
   (`features.execute_sql` from `adi.get_capabilities`), call `adi.execute_sql` **only**
   with SQL + signature from the same successful `generate_query` — unsigned queries are
   never executable via MCP.
-argument-hint: "[query_request]"
 license: Apache-2.0
-compatibility:
-  - Claude Code
-  - Claude Cowork
-  - Cursor
-  - OpenClaw
-  - Manus
-  - Codex
+compatibility: Claude Code, Claude Cowork, Cursor, OpenClaw, Manus, Codex
 metadata:
   author: agentic-data-intelligence
   version: "2.7.0"
-mcp_tools:
-  - adi.get_capabilities
-  - adi.generate_query
-  - adi.validate
-  - adi.execute_sql (not available on the hosted tier, t1)
+  mcp_tools: adi.get_capabilities adi.generate_query adi.validate
+  mcp_tools_self_hosted: adi.execute_sql
 ---
 
 # ADI querying

@@ -11,29 +11,12 @@ description: >-
   When execute_sql is enabled on the server, use adi.replay_self_check to replay
   contract self_check assertions against the attached warehouse.
 license: Apache-2.0
-compatibility:
-  - Claude Code
-  - Claude Cowork
-  - Cursor
-  - OpenClaw
-  - Manus
-  - Codex
+compatibility: Claude Code, Claude Cowork, Cursor, OpenClaw, Manus, Codex
 metadata:
   author: agentic-data-intelligence
   version: "1.7.0"
-mcp_tools:
-  - adi.get_capabilities
-  - adi.get_authoring_spec
-  - adi.validate
-  - adi.generate_query
-  - adi.replay_self_check (not available on the hosted tier, t1)
-  - adi.session.configure_scope (not available on the hosted tier, t1)
-  - adi.schema.list_objects (not available on the hosted tier, t1)
-  - adi.schema.get_table (not available on the hosted tier, t1)
-  - adi.schema.get_tables_batch (not available on the hosted tier, t1)
-  - adi.profile.table (not available on the hosted tier, t1)
-  - adi.profile.column (not available on the hosted tier, t1)
-  - adi.schema.create_snapshot (not available on the hosted tier, t1)
+  mcp_tools: adi.get_capabilities adi.get_authoring_spec adi.validate adi.generate_query
+  mcp_tools_self_hosted: adi.replay_self_check adi.session.configure_scope adi.schema.list_objects adi.schema.get_table adi.schema.get_tables_batch adi.profile.table adi.profile.column adi.schema.create_snapshot
 ---
 
 # ADI Contract v1 bundle (agent authoring)

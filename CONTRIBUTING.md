@@ -21,7 +21,10 @@ The two skills live under [`plugin/skills/`](plugin/skills/):
 - `plugin/skills/adi-authoring/` — `SKILL.md` plus the ADI Contract v1 `schemas/`
 
 Edit these files directly. Keep the YAML frontmatter valid — `name` must match the
-folder name, and the shipped `mcp_tools` / `compatibility` fields should stay accurate.
+folder name, and the shipped `compatibility` string and `metadata.mcp_tools` /
+`metadata.mcp_tools_self_hosted` lists should stay accurate. Custom keys belong under
+`metadata` (string values): the Agent Skills spec, `skills-ref validate` and claude.ai /
+Skills API uploads reject unknown top-level frontmatter keys.
 
 **Do not add a nested `agents/` (or any other subdirectory) under
 `plugin/skills/<name>/`.** Claude Code treats a nested `skills/<name>/agents/` as an
