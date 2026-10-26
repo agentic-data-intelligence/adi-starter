@@ -27,9 +27,10 @@ plugin/
 
 Each host reads its own manifest directory and ignores the others. An
 [Agent Plugins](https://agent-plugins.org) host reads the root `plugin.json` and `mcp.json`.
+Codex reads both: the root `plugin.json` for the plugin's identity and `.codex-plugin/plugin.json` for its own settings.
 
 There is one MCP config, `mcp.json`, in the Agent Plugins format: a `$schema` key and
-`"type": "streamable-http"`. Agent Plugins fixes that file name and allows no other `type`
+`"type": "streamable-http"`. Agent Plugins fixes that file name and allows only `streamable-http` or the legacy `sse`
 for a remote server; Claude Code accepts `streamable-http` as an alias of its `http`. Every
 vendor manifest points `mcpServers` at `./mcp.json`, so do not add a `.mcp.json`: two MCP
 configs can drift apart. Tested with Claude Code 2.1.304, Codex CLI
@@ -69,7 +70,7 @@ If a Claude Code session that was already open when you signed in does not show 
 
 - **Claude Code** — add the marketplace at the repo root, then install `adi`:
   `/plugin marketplace add agentic-data-intelligence/adi-starter`
-- **Claude Cowork:** in the Claude desktop app, open **Customize > Plugins**, select **Add > Add marketplace**, enter `https://github.com/agentic-data-intelligence/adi-starter`, add the ADI plugin, then connect the `adi` connector from the plugin's **Connectors** tab. If you use Claude Cowork and Claude Code, install in the app. Full steps: [Getting Started, Using ADI in Claude Cowork](https://docs.agentic-data.com/docs/starter-edition/getting-started).
+- **Claude Cowork:** in the Claude desktop app, open **Customize > Plugins**, select **Add > Add marketplace**, enter `https://github.com/agentic-data-intelligence/adi-starter`, add the ADI plugin, then connect the `adi` connector from the plugin's **Connectors** tab. If you use both Claude Cowork and Claude Code, install in the app: the plugin is saved to your Claude account and will also be available in Claude Code on the command line when you sign in there with the same account (not on an API key). A command-line install will not be available in Claude Cowork, and it will be available in Claude Code in the desktop app only if it was installed at user scope. At project or local scope it applies to that folder only. Full steps: [Getting Started, Using ADI in Claude Cowork](https://docs.agentic-data.com/docs/starter-edition/getting-started).
 - **Codex** — `codex plugin marketplace add agentic-data-intelligence/adi-starter`,
   then `codex plugin add adi@adi`.
 - **Cursor** — clone the repo, then copy this directory (not a symlink: Cursor skips

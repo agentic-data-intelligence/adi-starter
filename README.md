@@ -45,7 +45,7 @@ Verify with `/skills` and `/mcp`.
 
 In the Claude desktop app, open **Customize > Plugins**, select **Add > Add marketplace**, enter `https://github.com/agentic-data-intelligence/adi-starter`, then add the ADI plugin. Then open the plugin's **Connectors** tab to add and connect the `adi` connector; on Team and Enterprise plans an Owner adds it for the organisation. If you are not an Owner, ask your admin to add it, then connect it with your own account. Full steps: [Getting Started, Using ADI in Claude Cowork](https://docs.agentic-data.com/docs/starter-edition/getting-started).
 
-Cowork, in the Claude desktop app, uses the same ADI plugin as Claude Code: there is one Claude plugin, not one for each. If you use both, install ADI in the app. A plugin added there is saved to your Claude account, so it is available in Cowork and in Claude Code, both in the desktop app and on the command line. A plugin installed from the Claude Code command line is available in Claude Code only, not in Cowork. Installing in both places can load more than one copy of the ADI tools, and it is not obvious which one your agent is calling.
+Cowork, in the Claude desktop app, uses the same ADI plugin as Claude Code: there is one Claude plugin, not one for each. If you use both, install ADI in the app. A plugin added there is saved to your Claude account, so it is available in Cowork and in Claude Code in the desktop app. It will also be available in Claude Code in the command line if you sign in there with the same Claude account; if you use an API key on the command line instead, you need to install it there again. A plugin installed from the command line is not available in Cowork, and it is available in Claude Code in the desktop app only if you installed it for all projects (user scope) rather than for one folder. Installing in both places can result in more than one copy of the ADI tools, possibly on different versions if they were not installed or updated at the same time, and it may not be obvious which one your agent is calling.
 
 ### Codex
 
@@ -86,7 +86,7 @@ cp -R plugin/. ~/.cursor/plugins/local/adi/
 
 ### Other agents
 
-For OpenClaw, Manus, and any other coding agents that support either the [Agent Plugins Specification](https://agent-plugins.org) or the Agent Skills Specification: copy the two Skill folders (`adi-querying` and `adi-authoring`, in `plugin/skills/`) into your agent's skills directory, then configure the ADI MCP server as shown in [docs/mcp-clients.md](docs/mcp-clients.md). An Agent Plugins host can load the `plugin/` folder directly: its manifest is `plugin/plugin.json` and its MCP configuration is `plugin/mcp.json`. To install the Skills with the `skills` CLI instead of copying them, see [Use as a skills source](#use-as-a-skills-source).
+An [Agent Plugins](https://agent-plugins.org) host can load the `plugin/` folder directly: its manifest is `plugin/plugin.json` and its MCP configuration is `plugin/mcp.json`. For OpenClaw, Manus and any other coding agent, copy the two Skill folders (`adi-querying` and `adi-authoring`, in `plugin/skills/`) into your agent's skills directory, then configure the ADI MCP server as shown in [docs/mcp-clients.md](docs/mcp-clients.md). To install the Skills with the `skills` CLI instead of copying them, see [Use as a skills source](#use-as-a-skills-source).
 
 Full per-host notes: [plugin/README.md](plugin/README.md).
 
