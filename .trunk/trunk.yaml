@@ -1,7 +1,7 @@
 # Copyright 2026 Agentic Data Intelligence SA
 #
-# Trunk configuration. Versions track adi-starter-private's .trunk/trunk.yaml;
-# only the linters relevant to this repo (Markdown, JSON, GitHub Actions, CI scripts) are enabled.
+# Trunk configuration. Only the linters relevant to this repo (Markdown, JSON, GitHub Actions,
+# CI scripts) are enabled.
 version: 0.1
 cli:
   version: 1.25.0

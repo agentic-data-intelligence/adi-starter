@@ -3,11 +3,8 @@
 
 name: Dependency security gate
 
-# Counterpart of adi-enterprise's call-dependabot-alert-checks.yml. That one calls
-# shared-workflows' dependency-security-gate.yml, which a public repo cannot use:
-# shared-workflows is private, and GitHub does not let public repos call reusable
-# workflows from private ones. Public repos get actions/dependency-review-action
-# (and the dependency-graph compare API it needs) for free, so this uses it directly.
+# Public repos get actions/dependency-review-action (and the dependency-graph
+# compare API it needs) for free, so this uses it directly.
 
 on:
   pull_request:
@@ -26,5 +23,5 @@ jobs:
       - name: Dependency review
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
-          # Same threshold adi-enterprise passes to the shared gate.
+          # Fail on findings of moderate severity or higher.
           fail-on-severity: moderate

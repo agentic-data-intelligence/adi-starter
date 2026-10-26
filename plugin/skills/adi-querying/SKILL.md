@@ -2,28 +2,21 @@
 name: adi-querying
 description: >
   Generates contract-governed analytical SQL via ADI MCP tools using
-  `query_request` v1. Use when users ask metric/KPI/dimension questions.
+  `query_request` v1. Use when users ask metric/KPI/dimension questions,
+  including everyday requests such as a daily report, revenue or orders.
   Build a structured request and call `adi.generate_query`; do not ask ADI
   to parse natural language on your behalf. When the server allows it
   (`features.execute_sql` from `adi.get_capabilities`), call `adi.execute_sql` **only**
   with SQL + signature from the same successful `generate_query` — unsigned queries are
   never executable via MCP.
-argument-hint: "[query_request]"
 license: Apache-2.0
-compatibility:
-  - Claude Code
-  - Cursor
-  - OpenClaw
-  - Manus
-  - Codex
+compatibility: Claude Code, Claude Cowork, Cursor, OpenClaw, Manus, Codex
 metadata:
   author: agentic-data-intelligence
-  version: "2.6.3"
-mcp_tools:
-  - adi.get_capabilities
-  - adi.generate_query
-  - adi.validate
-  - adi.execute_sql
+  version: "2.7.0"
+  short-description: Answer metric and KPI questions about business data with contract-governed SQL from ADI
+  mcp_tools: adi.get_capabilities adi.generate_query adi.validate
+  mcp_tools_self_hosted: adi.execute_sql
 ---
 
 # ADI querying
@@ -32,6 +25,7 @@ mcp_tools:
 
 1. Call **`adi.get_capabilities`** first. Note **`features.execute_sql`**, **`features.core_tools`** (for **`generate_query`** / **`validate`**), and whether **`adi.execute_sql`** appears in **`enabled_tools`**.
    - **Authorization check (before anything else).** If the response has an **`authorization`** block and **`authorization.status`** is **`"pending_approval"`** (or, on older servers without `status`, **`authorization.query_role_granted`** is **`false`**), you are authenticated but **not approved**. Lead with that fact — relay **`authorization.message`** verbatim when present (it names the exact role and the correct retry guidance); otherwise say: _"Your ADI access is pending approval — an admin needs to grant you the query role; once granted, just ask again (no re-login)."_ Then **stop** — do not discover a contract, build a request, or call `generate_query`, and do **not** present role flags or `enabled_tools` as capabilities the user "has" while approval is pending. You may **offer to re-check periodically** (re-call `adi.get_capabilities` on the user's say-so) and continue automatically the moment `status` flips to `approved` — no re-login needed — so the user isn't left manually polling. (No `authorization` block means auth isn't role-gated here — proceed normally.)
+   - If `adi.validate` or `adi.generate_query` returns an error with the code `insufficient_role`, the account's ADI access is still pending approval. Tell the user so, as the error message says. Then stop. It is an error, not a refusal, so it is not in the refusal codes.
 2. Build a `query_request` v1 object.
 3. Call **`adi.generate_query`** with `query_request=…` and `contract=…` (see **Providing the contract** below), plus `row_limit` when the server requires it.
 4. On **`ok=true`**:
@@ -54,6 +48,7 @@ Use **`adi.execute_sql`** only when **`features.execute_sql`** is true **and** *
 At Starter (**T1**) the ADI MCP **only generates and validates SQL**: **`features.execute_sql`** is `false`, `adi.execute_sql` is not in **`enabled_tools`**, and `generate_query` returns **no `query.signature`**. There is no ADI-side database and no warehouse MCP tool, so the generated **`query.sql`** must be run **against the user's own warehouse, client-side** — or handed to the user to run. This is expected; it is not a failure and not "no access to your warehouse."
 
 - **Run it with the access you already have.** ADI does not ship or manage a client-side executor — it hands you **`query.sql`**. Run it through whatever warehouse connection the environment already provides (the user's own SQL client, a notebook/JDBC connection, native database tooling). Use the returned rows for the tabular answer, and always incorporate **`query.provenance`** / **`query.explanation`** from the same `generate_query` response.
+- **Run the SQL ADI returned, never a retyped copy.** Save **`query.sql`** to a file exactly as returned, and run that saved file. Do not retype, reformat or edit it first; if you need a wrapper (see **Coarser time grains**), keep the saved query byte-for-byte unchanged inside it.
 - **Or present it.** If you cannot run SQL in this environment, show **`query.sql`** alongside **`query.provenance`** and **`query.explanation`** so the user can run it themselves and understand what it does.
 - **Guardrails (unchanged).** **`adi.execute_sql`** is still **never** called without a valid **`signature`** — unsigned, generator-produced SQL runs only on the user's own warehouse, never through ADI-signed execution. Do **not** read credential stores, keychains, session cookies, or tokens yourself; use only a connection the user has already configured.
 
@@ -87,7 +82,10 @@ Once located, pass it as **`contract`**:
 
   **Bundles are typically tens of KB — emitting the full YAML inline in the tool call is the expected, supported path.** Read each bundle file and pass its text **directly** as the `documents` value — you do **not** need shell tools (`jq`, `cat`) or temp files to assemble the payload. Send it on every call; only when `features.contract_cache` is `true` may later calls reuse a returned `contract_hash` instead (see below). Do **not** invent alternative delivery mechanisms: no direct HTTP calls that bypass the MCP session, and **never** read, extract, or handle host credential stores, keychains, session cookies, or OAuth tokens for any purpose — auth belongs to the MCP client, not to you. If the inline upload genuinely fails (e.g. size limit error from the server), report that error to the user; do not work around it.
 
+  **Send each file exactly as it is on disk, and never trim it.** Read the files from disk before each call; the text you pass must be the file's full contents, character for character: do not shorten, reformat, summarise or retype any part of it, even a part you think is wrong. Do not change the contract files while querying: if the contract needs a change, say so and hand off to the `adi-authoring` skill. If the user changes the files during the session, the hash check below stops on the next call; once the user confirms the change, compare later hashes with the new one.
+
 - **Reuse by hash — only when `features.contract_cache` is `true`.** Then, and only then, later calls may skip re-uploading with `contract={"contract_hash": "<hash from a prior response>"}`. **When it is `false` (the hosted default), never send a hash** — it can only refuse. A stale/unknown hash refuses with `contract_not_cached`; where caching is on but per-replica this can happen even for a hash you just received. Either way treat it as a **normal, expected outcome, not an error**: recover by re-sending the full `documents` and continue.
+- Every successful `adi.generate_query` response carries a `contract_hash`, a fingerprint of the contract the SQL was compiled from. Treat it as an identity to compare: record the first one in the session, compare each later response's hash with it, and if one differs, stop and tell the user, because the contract sent has changed. Contract caching is off on the hosted server, so never send the hash in place of the contract.
 - `documents` and `contract_hash` are **mutually exclusive** — sending both is `request_malformed`.
 - **Do not "probe" without a contract at t1.** When `trust_tier` is `t1` (hosted), a `generate_query` call with no `contract` is **refused** — don't send a bare call to test reachability (that wastes a round trip). The first call must carry `documents` (a known `contract_hash` works only when **`features.contract_cache`** is **`true`** — never on the hosted default, where it is always refused). Only **local / T0 servers** with `ADI_CONTRACT_PATH` configured load a default contract from disk, so `contract` may be omitted there.
 
@@ -99,7 +97,7 @@ Once located, pass it as **`contract`**:
 - **Dimensions / selectors** — a metric's `allowed_group_bys` lists the `entity.column` selectors permitted for it; `disallowed_group_bys` blocks specific ones.
 - **Natural-language aliases** — `vocabulary.yaml` maps phrases to canonical ids (`vocabulary.metrics[].aliases → metric_id`, `vocabulary.dimensions[].aliases → selector`). Use it to translate e.g. "revenue" → the real metric id; never send an alias on the wire.
 
-When a user's term maps to **more than one** contract metric (e.g. "revenue" → several revenue / GMV metrics that differ by gross-vs-net, settled-cash, or attribution), name the metric you're using **and** the one-line alternatives **before** you call `generate_query` — a hosted generation is slow, and the user should not first learn which "revenue" they got in the final answer. Proceed with the most defensible default unless they pick another.
+When a user's term maps to **more than one** contract metric (e.g. "revenue" → several revenue / GMV metrics that differ by gross-vs-net, settled-cash, or attribution), name the metric you're using **and** the one-line alternatives **before** you call `generate_query` — a hosted generation is slow, and the user should not first learn which "revenue" they got in the final answer. Proceed with the most defensible default unless they pick another. If one of those metrics carries the user's term as an alias in `vocabulary.yaml`, that metric is the default.
 
 If you guess wrong, the refusal carries the valid options to recover from (e.g. `metric_not_found.details.available_metrics`, `dimension_not_allowed.details.allowed_group_bys`) — see [references/refusal_codes.md](references/refusal_codes.md).
 

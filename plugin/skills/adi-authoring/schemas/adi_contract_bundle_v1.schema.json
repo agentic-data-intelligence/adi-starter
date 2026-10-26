@@ -1143,7 +1143,7 @@
             }
           ],
           "default": null,
-          "description": "FX path: entity.column, or prefixed fx_rule:, fx_column:, fx_table:. May be followed by ``;<modifier>=<value>`` pairs. ``cast=double`` is an abstract hint for per-row fx_column multiplication (see contract_semantics). For ``fx_table:<physical_table>``, ``as_of=<entity.column>`` is required (valuation date on the metric's join path); optional ``quote=USD`` (default USD at runtime if omitted), ``base=USD`` (identity / same-currency rows), and ``rate_date_col`` / ``base_currency_col`` / ``quote_currency_col`` / ``rate_col`` when the FX table does not use the standard names rate_date, base_currency, quote_currency, rate. Execution semantics are implemented in ``adi-core`` (``adi_core.sql.fx``, ``adi_core.sql.compiler``) — see schemas/README.md.",
+          "description": "FX path: entity.column, or prefixed fx_rule:, fx_column:, fx_table:. May be followed by ``;<modifier>=<value>`` pairs. ``cast=double`` is an abstract hint for per-row fx_column multiplication (see contract_semantics). For ``fx_table:<physical_table>``, ``as_of=<entity.column>`` is required (valuation date on the metric's join path); optional ``quote=USD`` (default USD at runtime if omitted), ``base=USD`` (identity / same-currency rows), and ``rate_date_col`` / ``base_currency_col`` / ``quote_currency_col`` / ``rate_col`` when the FX table does not use the standard names rate_date, base_currency, quote_currency, rate.",
           "title": "Normalization Ref"
         }
       },
@@ -1444,7 +1444,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Structured ADI Contract v1 bundle (same documents as ``adi-contract`` bundle schema).",
+  "description": "Structured ADI Contract v1 bundle: the same documents as the per-document schemas beside it.",
   "properties": {
     "contract.yaml": {
       "$ref": "#/$defs/ContractYaml"

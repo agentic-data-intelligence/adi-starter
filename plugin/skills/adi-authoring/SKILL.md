@@ -11,27 +11,13 @@ description: >-
   When execute_sql is enabled on the server, use adi.replay_self_check to replay
   contract self_check assertions against the attached warehouse.
 license: Apache-2.0
-compatibility:
-  - Claude Code
-  - Cursor
-  - OpenClaw
-  - Manus
-  - Codex
+compatibility: Claude Code, Claude Cowork, Cursor, OpenClaw, Manus, Codex
 metadata:
   author: agentic-data-intelligence
-  version: "1.6.2"
-mcp_tools:
-  - adi.get_capabilities
-  - adi.get_authoring_spec
-  - adi.validate
-  - adi.replay_self_check
-  - adi.session.configure_scope
-  - adi.schema.list_objects
-  - adi.schema.get_table
-  - adi.schema.get_tables_batch
-  - adi.profile.table
-  - adi.profile.column
-  - adi.schema.create_snapshot
+  version: "1.7.0"
+  short-description: Author and validate an ADI Contract v1 YAML bundle (contract, entities, metrics) from warehouse metadata
+  mcp_tools: adi.get_capabilities adi.get_authoring_spec adi.validate adi.generate_query
+  mcp_tools_self_hosted: adi.replay_self_check adi.session.configure_scope adi.schema.list_objects adi.schema.get_table adi.schema.get_tables_batch adi.profile.table adi.profile.column adi.schema.create_snapshot
 ---
 
 # ADI Contract v1 bundle (agent authoring)
@@ -39,6 +25,8 @@ mcp_tools:
 ## MCP authoring helpers (when capabilities allow)
 
 Call **`adi.get_capabilities`** first. **Authorization check (before anything else):** if the response has an **`authorization`** block and **`authorization.status`** is **`"pending_approval"`** (or, on older servers without `status`, **`authorization.authoring_role_granted`** is **`false`**), you are authenticated but **not approved**. Lead with that fact — relay **`authorization.message`** verbatim when present (it names the exact role and the correct retry guidance); otherwise tell the user their access is pending approval (an admin must grant the role). Then **stop** — do not introspect, profile, or author, and do **not** present role flags or `enabled_tools` as capabilities the user "has" while approval is pending. You may **offer to re-check periodically** (re-call `adi.get_capabilities` on the user's say-so) and continue automatically once `status` flips to `approved` — no re-login needed — so the user isn't left manually polling. (No `authorization` block means auth isn't role-gated here — proceed.)
+
+If `adi.validate` or `adi.generate_query` returns an error with the code `insufficient_role`, the account's ADI access is still pending approval. Tell the user so, as the error message says. Then stop. It is an error, not a refusal, so it is not in the refusal codes.
 
 Use MCP authoring/schema/profile tools **only** when **`features.authoring_tools`** is **`true`** and **`enabled_tools`** lists them — for example **`adi.session.configure_scope`**, **`adi.schema.list_objects`**, **`adi.schema.get_table`**, **`adi.schema.get_tables_batch`**, **`adi.profile.table`**, **`adi.profile.column`**, **`adi.schema.create_snapshot`**.
 
@@ -73,6 +61,29 @@ Both tools take a single **`bundle`** argument that must set **exactly one** of 
 ```
 
 `adi.validate` also accepts `schema_snapshot_id` / `schema_metadata` (warehouse checks), `strict`, and `apply_repairs` (returns `repaired_documents`). **Determinism backstop:** when you have client-side warehouse metadata, pass it as inline `schema_metadata` together with `apply_repairs` and adopt the returned `repaired_documents` — the server then re-canonicalizes column spelling, numeric types, `time.canonical`, currency refs, and PII policies deterministically; then re-validate clean (no `apply_repairs`) to confirm the repaired bundle — which also returns its hash when `features.contract_cache` is `true`, per below. `adi.replay_self_check` takes the same `bundle` plus optional `assertion_names`.
+
+Pass inline `schema_metadata` in this format. In our tests, a shorter format the server did not read failed as `physical_table_missing` ("does not match any inspected table") rather than saying the metadata was not understood. Keep every key shown: the shorter form had only `catalog`, `schema` and `name` for the table and `name` and `type` for each column.
+
+```json
+{
+  "tables": [
+    {
+      "fqn": "analytics.main.orders",
+      "table_catalog": "analytics",
+      "table_schema": "main",
+      "table_name": "orders",
+      "columns": [
+        {
+          "name": "order_id",
+          "column_name": "order_id",
+          "data_type": "INTEGER"
+        },
+        { "name": "country", "column_name": "country", "data_type": "VARCHAR" }
+      ]
+    }
+  ]
+}
+```
 
 ### Reuse a validated bundle by hash — only when `features.contract_cache` is `true`
 
@@ -121,6 +132,8 @@ Write the bundle to the **project convention `./adi/contract/`** (UTF-8; the ADI
 | `policies.yaml`   | Optional (use when PII/sensitive columns exist)                                            |
 | `rules.yaml`      | Optional (FX rules, advanced governance; only if you reference them from metrics/contract) |
 
+Write the decisions record from Workflow step 3 to `./adi/DECISIONS.md`, beside the bundle directory (when the user names another bundle location, to `DECISIONS.md` in that location's parent directory). It is not a bundle document, so never send it to ADI.
+
 ## Workflow (when database access exists)
 
 1. **Gather domain context — ask the user explicitly.** Before introspecting, request the documents that define **meaning** (introspection covers structure; nothing else covers meaning). At minimum ask for:
@@ -128,13 +141,17 @@ Write the bundle to the **project convention `./adi/contract/`** (UTF-8; the ADI
    - a **revenue-recognition policy** — which order states count as realised revenue, and the treatment of cancellations, refunds, unpaid/pending orders, gift cards, tax, and shipping;
    - a **data dictionary** — column meanings, status/enum code lists, and which timestamp is the business event;
    - a **PII / sensitivity classification** — which columns are sensitive and how they must be handled.
+   - **a few figures the user already trusts**, each with its period and where it came from (for example one day's order count, or last month's revenue), so the finished contract can be checked against them.
 
    These populate the **Dataset / domain context** artifact in the Agent bundle above. Accept any subset the user has; record which are missing.
 
    > **If the user supplies none of these, say so loudly and specifically before authoring — do not silently proceed on the schema alone.** Without a glossary and a revenue-recognition policy, every business definition below becomes a **guess inferred from column names**: “revenue” may silently include cancelled, unpaid, or gift-card orders; “acquisition”/“active” may be measured by the wrong timestamp (e.g. registration date instead of first activity), masking real trends the data would otherwise show. The resulting numbers can be internally consistent and **defensible, but they are not authoritative** — and each debatable call propagates into every metric, policy, vocabulary alias, and `scope_note` built on top. Without a PII/sensitivity classification, `policies.yaml` is inferred from name patterns alone and **will miss non-obvious sensitive columns**. Obtain the documents, or an explicit user acknowledgement of these costs, before continuing.
 
 2. **Resolve scope** from the user: catalog/database name, schema name, and optional table allowlist/denylist.
-3. **Resolve the contestable definitions explicitly, and record each decision.** Before authoring metrics, write down the chosen answer to every definition the data leaves open, so a second author (or the same author on another day) would reproduce it. At minimum decide and record: entity succession (does a renamed or split entity roll up to a predecessor); event-versus-transaction grain (does one row equal one business event); additivity (which metrics may be summed across time or dimensions); in-progress and as-of handling (is the latest period complete, and what "as of" date governs "latest"); and scope (which population the metric covers). Where the context documents do not decide a point, either ask the user or record it as an assumption with its cost. For each metric, set `allowed_group_bys` to the modelled dimensions that are valid for it, so grouping is locked to a known-correct grain; only leave it open as a recorded, deliberate decision, and never expose a group-by that has no supporting key. Then test the whitelist against demand, not only correctness: list the questions users of this domain predictably ask — leaderboards and per-entity rankings, breakdowns by the obvious categorical columns, trends over time — and for each one either confirm some metric's `allowed_group_bys` answers it or record an explicit decision to exclude it, with the reason. The whitelist exists to block incorrect grains, not unanticipated questions: a breakdown the data supports but the list silently omits is not governance, it is a wrong refusal waiting to happen.
+3. **Resolve the contestable definitions explicitly, and record each decision.** Before authoring metrics, write down the chosen answer to every definition the data leaves open, so a second author (or the same author on another day) would reproduce it. At minimum decide and record: entity succession (does a renamed or split entity roll up to a predecessor); event-versus-transaction grain (does one row equal one business event); additivity (which metrics may be summed across time or dimensions); in-progress and as-of handling (is the latest period complete, and what "as of" date governs "latest"); and scope (which population the metric covers). **A definition the user supplied binds.** Where a context document defines a term, author that term's metric to that definition, under the user's name for it. Give that metric the user's term as an alias in `vocabulary.yaml`. If a supplied definition can be read more than one way on this data (for example, whether a cancellation invoice counts as an order), author it on its plain, literal reading and list it under "Departures from your documents", marked CONFIRM, with the reading the contract took, so the user decides. The same applies where a supplied definition is silent on a case the data contains (for example, whether gift cards count in a defined revenue): that is a question for the user, not an assumption. If you think the definition is wrong, ambiguous or a poor fit for the data, do not substitute your own reading: keep the user's metric as defined and propose your alternative to the user as a separate, named metric (for example `sale_order_count` beside `order_count`), with the reason. Add it to the contract only if the user agrees, and never give it the user's term as an alias. Where the data cannot support a supplied definition as written, that is a departure from the user's documents: record it as described below and ask. Revisit these points after introspection and profiling (steps 4 and 5), when you can see what the data contains. Where no context document covers a point and no supplied definition bears on it, either ask the user or record it as an assumption with its cost. For each metric, set `allowed_group_bys` to the modelled dimensions that are valid for it, so grouping is locked to a known-correct grain; only leave it open as a recorded, deliberate decision, and never expose a group-by that has no supporting key. Then test the whitelist against demand, not only correctness: list the questions users of this domain predictably ask — leaderboards and per-entity rankings, breakdowns by the obvious categorical columns, trends over time — and for each one either confirm some metric's `allowed_group_bys` answers it or record an explicit decision to exclude it, with the reason. The whitelist exists to block incorrect grains, not unanticipated questions: a breakdown the data supports but the list silently omits is not governance, it is a wrong refusal waiting to happen.
+
+   **Departures from the user's documents come first in the decisions record.** Open the decisions record (`./adi/DECISIONS.md`, see **Outputs**) with a section headed "Departures from your documents". List there, before any other decision, every point where the contract departs from a document the user supplied, and every open question about one, each marked CONFIRM, with the document's wording, what the contract does (for a departure, what it does instead), and why. If no document was departed from and no question is open, say so in that section. Authoring is not finished while any item in that section is unconfirmed: list them for the user in one message and ask.
+
 4. **Introspect** using the warehouse’s metadata APIs (e.g. `INFORMATION_SCHEMA`, `SHOW CREATE TABLE`, or native catalog commands). When MCP authoring tools are available (see above), prefer **`adi.session.configure_scope`** then **`adi.schema.*`** / **`adi.profile.*`** instead of ad-hoc SQL where they cover your needs. **When those tools are absent (the Starter/T1 posture), run the metadata queries client-side against the user's own warehouse using the access the environment already provides** — e.g. `SHOW TABLES`, `DESCRIBE <table>`, or `INFORMATION_SCHEMA` selects — rather than assuming a warehouse MCP tool exists. Collect for each in-scope table:
    - Fully qualified physical name (how SQL references it).
    - Table type (table/view).
@@ -148,10 +165,11 @@ Write the bundle to the **project convention `./adi/contract/`** (UTF-8; the ADI
    - **Every `count_distinct` identity column is a deliberate, data-verified choice.** A fact routinely carries several plausible columns for the same conceptual "who" — the actor and the party who acted on their behalf, the business entity and a technical/surrogate key — that all compile cleanly yet disagree by orders of magnitude. Before declaring any `count_distinct` metric, profile the distinct count of **every** candidate identity column and choose by which population's size and shape matches the business entity being counted; the column name and dictionary phrasing are **not** evidence — sources routinely label the on-behalf-of party as the "payer"/"sender", and a "customers" count in the tens against a sibling column in the tens of thousands is a red flag, not a coin flip. When plausible candidates disagree materially, treat the choice as a contestable definition: record it (step 3), state the chosen column, the rejected candidate, and **both** distinct counts in the metric's `scope_note`, and pin the choice with a `self_check` assertion (see **`contract.yaml` → `self_check`**). When the name points one way and the data shape the other, ask the user; if the user is unreachable, surface the conflict loudly rather than silently picking.
 6. **Author `contract.yaml`** with correct `datasource` and `defaults` (see below).
 7. **Author `entities.yaml`**: one entity per physical table you include; `physical` must match introspection; `columns` must list analytic-relevant columns; PK/grain/time must be consistent with metadata.
-8. **Author `metrics.yaml`**: metrics only over declared entities; expressions reference `entity_id.column` consistently. **Enumerate the metric set from an explicit source, not from what looks interesting:** author exactly one metric per glossary/KPI term gathered in step 1; when no glossary was supplied, author one metric per identified measure column (the step-5 `amount` markers are a starting point, not the full set — include any additive measure you find) and record the un-glossaried coverage as an assumption (step 3). This makes the _set_ of metrics reproducible across runs, not just each metric's shape.
+8. **Author `metrics.yaml`**: metrics only over declared entities; expressions reference `entity_id.column` consistently. **Enumerate the metric set from an explicit source, not from what looks interesting:** author exactly one metric per glossary/KPI term gathered in step 1 (plus any alternative the user agreed to in step 3); when no glossary was supplied, author one metric per identified measure column (the step-5 `amount` markers are a starting point, not the full set — include any additive measure you find) and record the un-glossaried coverage as an assumption (step 3). This makes the _set_ of metrics reproducible across runs, not just each metric's shape.
 9. **Author `vocabulary.yaml`**: aliases for metrics and dimensions you defined.
 10. **Author `policies.yaml`** when any column is PII/sensitive (email, phone, address, IP, device ids, free-text PII, precise geo) or when introspection marks columns as sensitive.
 11. **Self-check** using the validation checklist below (parse YAML, cross-reference IDs), then run **`adi.validate`** until clean (see **Machine validation**).
+12. **Check the contract against the figures the user trusts.** After `adi.validate` is clean, for each figure from step 1, generate the governed query with `adi.generate_query` and run it as the `adi-querying` skill describes (or ask the user to run it). If any result differs from the user's figure, stop: show the user both figures and the metric's definition, and do not treat the contract as finished until the user has decided. Record the user's decision in the decisions record. If the user has no trusted figures, say that this check was not run, and record that in the decisions record. Run this step again after any change to the bundle.
 
 ## `contract.yaml` (required shape)
 
@@ -216,6 +234,7 @@ Prefer **n:1** joins toward dimension **primary** (or documented unique) keys wh
 
 - Top-level key: `metrics`: array.
 - Each metric: `metric_id`, `title`, `base_entity`, `expression`.
+- **Do not copy the `metrics_example` snippet from `adi.get_authoring_spec`.** It uses an `expr:` key, which the spec's own JSON Schema rejects (a metric takes no extra keys). Follow the schema, which wins, and the example in this skill: `metric_id`, `title`, `base_entity`, and `expression` with a `type`, as in the ratio example below.
 - `expression.type`: `sum` | `count` | `count_distinct` | `ratio`
   - **Choose the type from the measure column's meaning, using the step-5 markers as a consistent first pass:** a unique id / primary-key column → `count_distinct`; an additive money/quantity measure → `sum` (the step-5 `amount` markers catch the common names — `*_amount`, `total_*`, `revenue`, `price`, `fee` — but any additive measure qualifies, matched or not); plain row frequency with no measure column → `count`; an explicitly-declared rate/share (numerator ÷ denominator) → `ratio`. Applying the same rule makes the same concept get the same `expression.type` + column across runs.
   - `sum` and `count_distinct` require `expression.value` as **`entity_id.ColumnName`** (entity id lower_snake, column as declared on entity). For `count_distinct`, the `value` column must be the **data-verified identity choice from Workflow step 5** — never the name-obvious candidate taken on faith.
@@ -367,6 +386,11 @@ When both a **surrogate/technical key** (e.g. ingest id) and a **natural busines
 
 Then run **machine validation** below until clean.
 
+Before you call the contract finished, also confirm:
+
+6. **Departures**: the decisions record opens with "Departures from your documents", and the user has confirmed every item in it, or it says that no document was departed from and no question is open.
+7. **Trusted figures**: step 12 ran on the final bundle, and every figure matched or the user decided on each difference, as the decisions record shows; or the decisions record says the user had none.
+
 ## Machine validation (required for high confidence)
 
 Human prose in this skill is **not** sufficient to guarantee acceptance. The authoritative check is the MCP validator.
@@ -384,7 +408,7 @@ The bundle's formal shape ships alongside this skill under **`schemas/`** — se
 
 ### C. Replay `self_check` assertions (MCP + warehouse)
 
-When **`features.execute_sql`** is **`true`** and **`enabled_tools`** lists **`adi.replay_self_check`**, call **`adi.replay_self_check`** with the contract bundle (including **`contract.self_check`** when authored). This executes dialect-translated assertion SQL against the server-configured warehouse — complementary to **`validate`** (which does not run warehouse SQL). Since you have just run **`adi.validate`** on the same bundle, prefer passing the **`contract_hash`** it returned instead of re-uploading `documents` (see **Reuse a validated bundle by hash**). If **`replay_self_check`** is disabled (e.g. the Starter/T1 posture, where `features.execute_sql` is false), rely on **`adi.validate`** alone.
+When **`features.execute_sql`** is **`true`** and **`enabled_tools`** lists **`adi.replay_self_check`**, call **`adi.replay_self_check`** with the contract bundle (including **`contract.self_check`** when authored). This executes dialect-translated assertion SQL against the server-configured warehouse — complementary to **`validate`** (which does not run warehouse SQL). Since you have just run **`adi.validate`** on the same bundle, prefer passing the **`contract_hash`** it returned instead of re-uploading `documents` (see **Reuse a validated bundle by hash**). If **`replay_self_check`** is disabled (e.g. the Starter/T1 posture, where `features.execute_sql` is false), rely on **`adi.validate`** and the trusted-figures check (Workflow step 12).
 
 ## Anti-patterns (reject)
 
