@@ -57,17 +57,18 @@ jobs:
 
       # The plugin authenticates with OAuth only. Credential headers in the shipped
       # stub would bring back the retired static-key path, so refuse them.
-      - name: Check plugin/.mcp.json
+      - name: Check plugin/mcp.json
         run: |
           set -euo pipefail
-          f=plugin/.mcp.json
+          f=plugin/mcp.json
           problems="$(jq -r '
             (.mcpServers // {}) as $s
-            | if ($s | type) != "object" then "mcpServers must be an object of name -> server, found \($s | type)"
+            | (if ."$schema" != "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json" then "$schema must be the Agent Plugins 1.0.0 MCP schema, found \(."$schema" | tostring)" else empty end),
+              if ($s | type) != "object" then "mcpServers must be an object of name -> server, found \($s | type)"
               elif ($s | length) != 1 then "expected exactly one server, found \($s | length)" else empty end,
               ($s | objects | to_entries[]
                 | .key as $k | .value
-                | (if .type != "http" then "\($k): type must be \"http\", found \(.type | tostring)" else empty end),
+                | (if .type != "streamable-http" then "\($k): type must be \"streamable-http\", found \(.type | tostring)" else empty end),
                   (if (.url | tostring | startswith("https://")) | not then "\($k): url must be https, found \(.url | tostring)" else empty end),
                   (if has("headers") or has("env_http_headers") or has("bearer_token_env_var") then "\($k): must not set credential headers; the plugin authenticates with OAuth" else empty end))
           ' "$f")"
@@ -89,9 +90,9 @@ jobs:
       - name: Probe the shipped MCP endpoint
         run: |
           set -euo pipefail
-          url="$(jq -r '.mcpServers | to_entries[0].value.url' plugin/.mcp.json)"
+          url="$(jq -r '.mcpServers | to_entries[0].value.url' plugin/mcp.json)"
           echo "Endpoint: ${url}"
-          fail() { echo "::error file=plugin/.mcp.json::${url}: $*"; exit 1; }
+          fail() { echo "::error file=plugin/mcp.json::${url}: $*"; exit 1; }
           get() { curl -sS --fail --max-time 20 --retry 3 --retry-all-errors "$1"; }
 
           headers="$(curl -sS --max-time 20 --retry 3 --retry-all-errors -o /dev/null -D - -X POST "$url" \

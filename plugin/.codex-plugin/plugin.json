@@ -1,6 +1,6 @@
 {
   "name": "adi",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Agentic Data Intelligence - Starter Edition (Closed Beta). ADI Contract v1 authoring and contract-governed analytical querying Skills, bundled with the ADI Starter Edition MCP server. Machine readable documentation index for Agents at https://docs.agentic-data.com/llms.txt",
   "author": {
     "name": "Agentic Data Intelligence SA",
@@ -26,7 +26,7 @@
     "starter-edition"
   ],
   "skills": ["./skills/adi-querying", "./skills/adi-authoring"],
-  "mcpServers": "./.mcp.json",
+  "mcpServers": "./mcp.json",
   "interface": {
     "displayName": "Agentic Data Intelligence",
     "shortDescription": "Agentic Data Intelligence Starter Edition: contract-governed querying + ADI Contract authoring, bundled with the ADI MCP server.",

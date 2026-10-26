@@ -45,7 +45,7 @@ Verify with `/skills` and `/mcp`.
 
 In the Claude desktop app, open **Customize > Plugins**, select **Add > Add marketplace**, enter `https://github.com/agentic-data-intelligence/adi-starter`, then add the ADI plugin. Then open the plugin's **Connectors** tab to add and connect the `adi` connector; on Team and Enterprise plans an Owner adds it for the organisation. If you are not an Owner, ask your admin to add it, then connect it with your own account. Full steps: [Getting Started, Using ADI in Claude Cowork](https://docs.agentic-data.com/docs/starter-edition/getting-started).
 
-Cowork, in the Claude desktop app, uses the same ADI plugin as Claude Code: there is one Claude plugin, not one for each. If you use both, install ADI in the app. A plugin added there is saved to your Claude account, so it is available in Cowork and in Claude Code, both in the desktop app and on the command line. A plugin installed from the Claude Code command line is available in Claude Code only, not in Cowork. Installing in both places can load more than one copy of the ADI tools, and it is not obvious which one your agent is calling.
+Cowork, in the Claude desktop app, uses the same ADI plugin as Claude Code: there is one Claude plugin, not one for each. If you use both, install ADI in the app. A plugin added there is saved to your Claude account, so it is available in Cowork and in Claude Code in the desktop app. It will also be available in Claude Code in the command line if you sign in there with the same Claude account; if you use an API key on the command line instead, you need to install it there again. A plugin installed from the command line is not available in Cowork, and it is available in Claude Code in the desktop app only if you installed it for all projects (user scope) rather than for one folder. Installing in both places can result in more than one copy of the ADI tools, possibly on different versions if they were not installed or updated at the same time, and it may not be obvious which one your agent is calling.
 
 ### Codex
 
@@ -86,7 +86,7 @@ cp -R plugin/. ~/.cursor/plugins/local/adi/
 
 ### Other agents
 
-For OpenClaw, Manus, and any other coding agents that support either the Open Plugins Specification or the Agent Skills Specification: copy the two Skill folders (`adi-querying` and `adi-authoring`, in `plugin/skills/`) into your agent's skills directory, then configure the ADI MCP server as shown in [docs/mcp-clients.md](docs/mcp-clients.md). For an Open Plugins host, the plugin's Open Plugins manifest is at `plugin/.plugin/plugin.json`. To install the Skills with the `skills` CLI instead of copying them, see [Use as a skills source](#use-as-a-skills-source).
+An [Agent Plugins](https://agent-plugins.org) host can load the `plugin/` folder directly: its manifest is `plugin/plugin.json` and its MCP configuration is `plugin/mcp.json`. For OpenClaw, Manus and any other coding agent, copy the two Skill folders (`adi-querying` and `adi-authoring`, in `plugin/skills/`) into your agent's skills directory, then configure the ADI MCP server as shown in [docs/mcp-clients.md](docs/mcp-clients.md). To install the Skills with the `skills` CLI instead of copying them, see [Use as a skills source](#use-as-a-skills-source).
 
 Full per-host notes: [plugin/README.md](plugin/README.md).
 
@@ -117,7 +117,7 @@ MCP server separately (see [docs/mcp-clients.md](docs/mcp-clients.md)).
 
 ## Authentication
 
-The ADI MCP server uses OAuth: `.mcp.json` ships with no credentials, so the
+The ADI MCP server uses OAuth: `mcp.json` ships with no credentials, so the
 hosted service opens a Zitadel browser login on first connect — nothing to configure.
 To start the sign-in in Claude Code, type `/mcp` in a session, select `adi` and authenticate. Run `codex mcp login adi` in Codex, or approve the prompt Cursor shows when the server first connects. Then complete the login in your browser. In Cowork you connect from the plugin's Connectors tab instead (see Using ADI in Claude Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
 
@@ -134,8 +134,8 @@ adi-starter/
 ├── .agents/plugins/marketplace.json  Codex marketplace manifest → ./plugin
 ├── plugin/                           the unified plugin bundle (skills + MCP)
 │   ├── skills/{adi-querying,adi-authoring}/
-│   ├── .mcp.json
-│   ├── .claude-plugin/ .codex-plugin/ .cursor-plugin/ .plugin/
+│   ├── plugin.json mcp.json          Agent Plugins 1.0.0 manifest + the one MCP config
+│   ├── .claude-plugin/ .codex-plugin/ .cursor-plugin/
 │   └── assets/adi_logo.png
 └── docs/mcp-clients.md               MCP client configs + HTTP fallback
 ```

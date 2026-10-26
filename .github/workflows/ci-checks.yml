@@ -38,7 +38,7 @@ jobs:
       - name: Check plugin name, version and source agree across manifests
         run: |
           set -euo pipefail
-          plugin_manifests=(plugin/.claude-plugin/plugin.json plugin/.codex-plugin/plugin.json plugin/.cursor-plugin/plugin.json plugin/.plugin/plugin.json)
+          plugin_manifests=(plugin/.claude-plugin/plugin.json plugin/.codex-plugin/plugin.json plugin/.cursor-plugin/plugin.json plugin/plugin.json)
           marketplaces=(.claude-plugin/marketplace.json .cursor-plugin/marketplace.json .agents/plugins/marketplace.json)
 
           expected_version="$(jq -r .version plugin/.claude-plugin/plugin.json)"

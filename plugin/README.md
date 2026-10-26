@@ -10,24 +10,31 @@ Copyright 2026 Agentic Data Intelligence SA
 One plugin bundle, consumed by every plugin-based host: **Claude Code (+ Cowork)**,
 **Cursor**, and **Codex**. It ships the two ADI skills (`adi-querying`, `adi-authoring`) plus the
 ADI MCP server. Edit the skill files under `skills/` directly; the per-host manifests
-and the shared `.mcp.json` stub are hand-maintained.
+and the shared `mcp.json` are hand-maintained.
 
 ## Layout
 
 ```text
 plugin/
 ├── skills/{adi-querying,adi-authoring}/   SKILL.md (+ references / examples / schemas)
-├── .mcp.json            single MCP stub — OAuth by default (no credentials)
-├── .claude-plugin/plugin.json   Claude Code manifest
-├── .codex-plugin/plugin.json    Codex manifest (declares skills + mcpServers)
-├── .cursor-plugin/plugin.json   Cursor manifest (mcpServers → ./.mcp.json)
-├── .plugin/plugin.json          vendor-neutral Open Plugins manifest
+├── plugin.json                  vendor-neutral Agent Plugins 1.0.0 manifest
+├── mcp.json                     the one MCP config (Agent Plugins format) — OAuth, no credentials
+├── .claude-plugin/plugin.json   Claude Code manifest (mcpServers → ./mcp.json)
+├── .codex-plugin/plugin.json    Codex manifest (declares skills + mcpServers → ./mcp.json)
+├── .cursor-plugin/plugin.json   Cursor manifest (mcpServers → ./mcp.json)
 └── assets/adi_logo.png          plugin logo
 ```
 
-Each host reads its own manifest directory and ignores the others. Claude Code, Codex,
-and the neutral `.plugin/` take `.mcp.json` as their default MCP location; Cursor's
-default is `mcp.json`, so its manifest points `mcpServers` at `./.mcp.json`.
+Each host reads its own manifest directory and ignores the others. An
+[Agent Plugins](https://agent-plugins.org) host reads the root `plugin.json` and `mcp.json`.
+Codex reads both: the root `plugin.json` for the plugin's identity and `.codex-plugin/plugin.json` for its own settings.
+
+There is one MCP config, `mcp.json`, in the Agent Plugins format: a `$schema` key and
+`"type": "streamable-http"`. Agent Plugins fixes that file name and allows only `streamable-http` or the legacy `sse`
+for a remote server; Claude Code accepts `streamable-http` as an alias of its `http`. Every
+vendor manifest points `mcpServers` at `./mcp.json`, so do not add a `.mcp.json`: two MCP
+configs can drift apart. Tested with Claude Code 2.1.304, Codex CLI
+0.142.0 and Claude Cowork; not yet tested in Cursor.
 
 ## No nested `agents/` under `skills/<name>/`
 
@@ -44,7 +51,7 @@ so its mere presence makes Claude Code **silently register 0 skills** for the wh
 Since this bundle is Claude-Code-first and the manifest is optional for Codex, we omit it.
 **Codex is unaffected in substance:** both skills still load (from the `.codex-plugin`
 `skills` list + each `SKILL.md`), and the `adi` MCP server is fully declared in
-`.mcp.json` and `.codex-plugin/plugin.json`. Only the optional per-skill niceties
+`mcp.json` and `.codex-plugin/plugin.json`. Only the optional per-skill niceties
 (custom display name / default prompt, `allow_implicit_invocation`) are dropped in the
 Codex UI. Full Codex UI parity would require a **separate Codex-only bundle** — the
 manifest cannot coexist with Claude in one directory. Do not add a nested `agents/` (or
@@ -53,7 +60,7 @@ any other subdir) under `skills/<name>/`.
 ## Auth
 
 The MCP server uses OAuth: the hosted ADI service opens a Zitadel browser login on first
-connect, so `.mcp.json` ships with no credentials and needs no configuration.
+connect, so `mcp.json` ships with no credentials and needs no configuration.
 
 To start the sign-in in Claude Code, type `/mcp` in a session, select `adi` and authenticate. Run `codex mcp login adi` in Codex, or approve the prompt Cursor shows when the server first connects. Then complete the login in your browser. In Cowork you connect from the plugin's Connectors tab instead (see Using ADI in Claude Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
 
@@ -63,7 +70,7 @@ If a Claude Code session that was already open when you signed in does not show 
 
 - **Claude Code** — add the marketplace at the repo root, then install `adi`:
   `/plugin marketplace add agentic-data-intelligence/adi-starter`
-- **Claude Cowork:** in the Claude desktop app, open **Customize > Plugins**, select **Add > Add marketplace**, enter `https://github.com/agentic-data-intelligence/adi-starter`, add the ADI plugin, then connect the `adi` connector from the plugin's **Connectors** tab. If you use Claude Cowork and Claude Code, install in the app. Full steps: [Getting Started, Using ADI in Claude Cowork](https://docs.agentic-data.com/docs/starter-edition/getting-started).
+- **Claude Cowork:** in the Claude desktop app, open **Customize > Plugins**, select **Add > Add marketplace**, enter `https://github.com/agentic-data-intelligence/adi-starter`, add the ADI plugin, then connect the `adi` connector from the plugin's **Connectors** tab. If you use both Claude Cowork and Claude Code, install in the app: the plugin is saved to your Claude account and will also be available in Claude Code on the command line when you sign in there with the same account (not on an API key). A command-line install will not be available in Claude Cowork, and it will be available in Claude Code in the desktop app only if it was installed at user scope. At project or local scope it applies to that folder only. Full steps: [Getting Started, Using ADI in Claude Cowork](https://docs.agentic-data.com/docs/starter-edition/getting-started).
 - **Codex** — `codex plugin marketplace add agentic-data-intelligence/adi-starter`,
   then `codex plugin add adi@adi`.
 - **Cursor** — clone the repo, then copy this directory (not a symlink: Cursor skips
