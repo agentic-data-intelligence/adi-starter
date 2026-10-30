@@ -34,7 +34,7 @@ There is one MCP config, `mcp.json`, in the Agent Plugins format: a `$schema` ke
 for a remote server; Claude Code accepts `streamable-http` as an alias of its `http`. Every
 vendor manifest points `mcpServers` at `./mcp.json`, so do not add a `.mcp.json`: two MCP
 configs can drift apart. Tested with Claude Code 2.1.304, Codex CLI
-0.142.0 and Claude Cowork; not yet tested in Cursor.
+0.142.0, Claude Cowork, the Codex app (in ChatGPT) and Cursor 3.27.22 (local copy).
 
 ## No nested `agents/` under `skills/<name>/`
 
@@ -62,18 +62,20 @@ any other subdir) under `skills/<name>/`.
 The MCP server uses OAuth: the hosted ADI service opens a Zitadel browser login on first
 connect, so `mcp.json` ships with no credentials and needs no configuration.
 
-To start the sign-in in Claude Code, type `/mcp` in a session, select `adi` and authenticate. Run `codex mcp login adi` in Codex, or approve the prompt Cursor shows when the server first connects. Then complete the login in your browser. In Cowork you connect from the plugin's Connectors tab instead (see Using ADI in Claude Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
+To start the sign-in in Claude Code, type `/mcp` in a session, select `adi` and authenticate, then complete the login in your browser. In Codex, run `codex mcp login adi`; in the Codex app, the sign-in completes in your browser.
 
-If a Claude Code session that was already open when you signed in does not show the ADI tools, type `/mcp` in that session too, select `adi` and authenticate.
+In Cursor, if the plugin's `adi` server shows **Needs Authentication**, select **Authenticate** and complete the login in your browser. In Cowork you connect from the plugin's Connectors tab instead (see Using ADI in Claude Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
+
+If a Claude Code session that was already open when you signed in does not show the ADI tools, type `/mcp` in that session too, select `adi` and authenticate. If you installed in the Claude desktop app and added its connector there: in our tests on a Team plan, the terminal's `/mcp` listed that `adi` connector as disabled; select it and choose **Enable**.
 
 ## Install
 
 - **Claude Code** — add the marketplace at the repo root, then install `adi`:
   `/plugin marketplace add agentic-data-intelligence/adi-starter`
-- **Claude Cowork:** in the Claude desktop app, open **Customize > Plugins**, select **Add > Add marketplace**, enter `https://github.com/agentic-data-intelligence/adi-starter`, add the ADI plugin, then connect the `adi` connector from the plugin's **Connectors** tab. If you use both Claude Cowork and Claude Code, install in the app: the plugin is saved to your Claude account and will also be available in Claude Code on the command line when you sign in there with the same account (not on an API key). A command-line install will not be available in Claude Cowork, and it will be available in Claude Code in the desktop app only if it was installed at user scope. At project or local scope it applies to that folder only. Full steps: [Getting Started, Using ADI in Claude Cowork](https://docs.agentic-data.com/docs/starter-edition/getting-started).
+- **Claude Cowork:** in the Claude desktop app, open **Customize > Plugins**, select **Add > Add marketplace**, enter `https://github.com/agentic-data-intelligence/adi-starter`, add the ADI plugin, then add and connect the `adi` connector from the plugin's **Connectors** tab, opened from Cowork. If you use both Claude Cowork and Claude Code, install in the app: the plugin is saved to your Claude account and will also be available in Claude Code on the command line when you sign in there with the same account (not on an API key). A command-line install will not be available in Claude Cowork, and it will be available in Claude Code in the desktop app only if it was installed at user scope. At project or local scope it applies to that folder only. Full steps: [Getting Started, Using ADI in Claude Cowork](https://docs.agentic-data.com/docs/starter-edition/getting-started).
 - **Codex** — `codex plugin marketplace add agentic-data-intelligence/adi-starter`,
   then `codex plugin add adi@adi`.
-- **Cursor** — clone the repo, then copy this directory (not a symlink: Cursor skips
+- **Cursor** — clone the repo, then copy this directory's contents into `~/.cursor/plugins/local/adi`, not the directory itself (and not a symlink: Cursor skips
   symlinks in `~/.cursor/plugins/local` that point elsewhere on disk). From the repo
   root, removing any symlink left by earlier install instructions first:
 

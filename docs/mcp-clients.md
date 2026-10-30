@@ -16,17 +16,21 @@ OAuth flow — a Zitadel browser login on first connect, with nothing to configu
 - **Claude Code:** type `/mcp` in a session, select `adi` and authenticate, then complete
   the login in your browser. If a Claude Code session that was already open when you
   signed in does not show the ADI tools, type `/mcp` in that session too, select `adi`
-  and authenticate.
-- **Claude Cowork:** connect from the plugin's Connectors tab instead (see Using ADI in Claude
+  and authenticate. If you installed in the Claude desktop app and added its connector
+  there: in our tests on a Team plan, the terminal's `/mcp` listed that `adi` connector as
+  disabled; select it and choose **Enable**.
+- **Claude Cowork:** connect from the plugin's Connectors tab, opened from Cowork, instead (see Using ADI in Claude
   Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
-- **Cursor:** approve the in-app OAuth prompt when the server first connects.
+- **Cursor:** if the `adi` server shows **Needs Authentication**, select **Authenticate**,
+  then complete the login in your browser.
 - **Codex:** `auth` defaults to `oauth` for HTTP servers — run `codex mcp login adi`
-  (Codex opens a local callback listener).
+  (Codex opens a local callback listener). In the Codex app, the sign-in completes in your
+  browser.
 
 | Client        | File                                  | Where it goes                                                                                                                                                                        |
 | ------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Claude Code   | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (`/plugin install adi`). Uses OAuth (Zitadel browser login): no credentials to configure (sign in with `/mcp` in a session).                             |
-| Claude Cowork | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (**Customize > Plugins**). Installing does not add the connector: add and connect `adi` from the plugin's **Connectors** tab.                            |
+| Claude Cowork | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (**Customize > Plugins**). Installing does not add the connector: add and connect `adi` from the plugin's **Connectors** tab, opened from Cowork.        |
 | Cursor        | [plugin/mcp.json](../plugin/mcp.json) | Cursor's manifest points `mcpServers` at this file; or merge it into `~/.cursor/mcp.json` under `mcpServers`.                                                                        |
 | Codex         | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (install via `.agents/plugins/marketplace.json`). OAuth (`codex mcp login adi`); for a loose install, add `[mcp_servers.adi]` to `~/.codex/config.toml`. |
 
