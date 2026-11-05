@@ -8,8 +8,7 @@ on:
 
 permissions: read-all
 
-# Restore only; no workflow in this repo writes the cache.
-cache-mode: read
+cache-mode: none
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -29,6 +28,9 @@ jobs:
 
       - name: Trunk Check Results
         uses: trunk-io/trunk-action@e1234e67a86010d61ddac8d8ebf4b783e2ffd2fa # v2.0.0
+        with:
+          # No workflow writes the cache, so a restore never hits, and its actions/cache warns on every denied save.
+          cache: false
 
   plugin-manifests:
     name: Plugin manifests consistency
