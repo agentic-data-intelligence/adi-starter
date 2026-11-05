@@ -1,7 +1,7 @@
 # Copyright 2026 Agentic Data Intelligence SA
 # SPDX-License-Identifier: Apache-2.0
 
-# TODO(rhysd/actionlint#745): drop this once actionlint knows the cache-mode key.
+# TODO(rhysd/actionlint#762): drop this once actionlint knows the cache-mode key.
 paths:
   .github/workflows/**/*.{yml,yaml}:
     ignore:
