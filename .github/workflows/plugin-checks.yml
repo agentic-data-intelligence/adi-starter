@@ -8,6 +8,9 @@ on:
 
 permissions: read-all
 
+# Restore only; no workflow in this repo writes the cache.
+cache-mode: read
+
 concurrency:
   group: plugin-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true

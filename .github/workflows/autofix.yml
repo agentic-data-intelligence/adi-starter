@@ -12,6 +12,8 @@ on:
 permissions:
   contents: read
 
+cache-mode: none
+
 jobs:
   trunk-fmt-and-autofix:
     runs-on: ubuntu-latest
@@ -21,16 +23,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-
-      - name: Cache Trunk
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.cache/trunk
-            ~/.trunk
-          key: trunk-${{ runner.os }}-${{ hashFiles('.trunk/trunk.yaml', 'trunk.yaml') }}
-          restore-keys: |
-            trunk-${{ runner.os }}-
 
       - name: Install Trunk
         run: curl -fsSL https://get.trunk.io | bash

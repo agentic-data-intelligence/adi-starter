@@ -11,6 +11,8 @@ on:
 permissions:
   contents: read
 
+cache-mode: none
+
 concurrency:
   group: commit-hygiene-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true

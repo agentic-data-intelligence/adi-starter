@@ -12,6 +12,8 @@ on:
 permissions:
   contents: read
 
+cache-mode: none
+
 jobs:
   dependency-review:
     name: Dependency review
