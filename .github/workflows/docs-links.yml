@@ -9,8 +9,6 @@ on:
 permissions:
   contents: read
 
-cache-mode: none
-
 jobs:
   lychee:
     runs-on: ubuntu-latest

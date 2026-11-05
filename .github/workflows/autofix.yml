@@ -12,10 +12,10 @@ on:
 permissions:
   contents: read
 
-cache-mode: none
-
 jobs:
   trunk-fmt-and-autofix:
+    # Privileged: the autofix.ci app commits this job's output to the PR branch.
+    cache-mode: none
     runs-on: ubuntu-latest
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:

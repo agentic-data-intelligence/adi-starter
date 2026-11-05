@@ -8,8 +8,6 @@ on:
 
 permissions: read-all
 
-cache-mode: none
-
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -28,9 +26,6 @@ jobs:
 
       - name: Trunk Check Results
         uses: trunk-io/trunk-action@e1234e67a86010d61ddac8d8ebf4b783e2ffd2fa # v2.0.0
-        with:
-          # The trunk job holds checks: write, so cache-mode none; a restore always misses and a save warns.
-          cache: false
 
   plugin-manifests:
     name: Plugin manifests consistency
