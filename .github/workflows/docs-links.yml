@@ -14,13 +14,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Check links in Markdown
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
-          # Fail if the globs match nothing, so a future path change can't
-          # silently turn this back into a no-op.
-          failIfEmpty: true
-          # `--offline` validates relative/internal doc links (and their
-          # #fragments) without hitting the network, so PRs don't fail on
-          # third-party outages or rate limits.
-          args: --offline --include-fragments --verbose --no-progress "*.md" "docs/**/*.md" "plugin/**/*.md"
+          persist-credentials: false
+
+      # lychee 0.24.2 pinned by sha256 (the release's published digest), in place of lycheeverse/lychee-action, which
+      # downloaded the binary on every run without checking it.
+      - name: Install lychee
+        env:
+          URL: https://github.com/lycheeverse/lychee/releases/download/lychee-v0.24.2/lychee-x86_64-unknown-linux-gnu.tar.gz
+          SHA256: 1f4e0ef7f6554a6ed33dd7ac144fb2e1bbed98598e7af973042fc5cd43951c9a
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl -sSfL --retry 3 -o lychee.tar.gz "$URL"
+          echo "$SHA256  lychee.tar.gz" | sha256sum -c --quiet -
+          tar -xzf lychee.tar.gz lychee-x86_64-unknown-linux-gnu/lychee
+          install -D lychee-x86_64-unknown-linux-gnu/lychee "$RUNNER_TEMP/lychee-bin/lychee"
+          echo "$RUNNER_TEMP/lychee-bin" >> "$GITHUB_PATH"
+
+      # `--offline` validates relative/internal doc links (and their #fragments) without hitting the network, so PRs
+      # don't fail on third-party outages or rate limits. No links at all fails too, so a future path change can't
+      # silently turn this back into a no-op.
+      - name: Check links in Markdown
+        run: |
+          set -uo pipefail
+          report="$RUNNER_TEMP/lychee-report.md"
+          lychee --mode task --format markdown --output "$report" \
+            --offline --include-fragments --verbose --no-progress "*.md" "docs/**/*.md" "plugin/**/*.md"
+          status=$?
+          cat "$report"
+          cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          if grep -qE 'Total\s+\|\s+0\s' "$report"; then
+            echo "::error title=link-check::no links were found: usually a path that no longer matches"
+            exit 1
+          fi
+          exit "$status"
