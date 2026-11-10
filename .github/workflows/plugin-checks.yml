@@ -16,6 +16,7 @@ jobs:
   claude-plugin-validate:
     name: Claude Code plugin validate
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       # Bump deliberately: newer releases can add validation rules.
       CLAUDE_CODE_VERSION: 2.1.287
@@ -34,6 +35,7 @@ jobs:
   skills-and-schemas:
     name: Skill frontmatter, version bumps and schemas
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -52,6 +54,7 @@ jobs:
   mcp-config:
     name: MCP config
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -81,6 +84,7 @@ jobs:
   mcp-endpoint:
     name: MCP endpoint liveness
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 

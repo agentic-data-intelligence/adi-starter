@@ -1,0 +1,31 @@
+# Copyright 2026 Agentic Data Intelligence SA
+# SPDX-License-Identifier: Apache-2.0
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jdx/jactionlint/v2.5.0/schema/jactionlint-config.json
+
+# jactionlint (the jactionlint job in ci-checks.yml) in place of actionlint: actionlint's checks, which the correctness
+# profile is, plus the rules zizmor has no audit for. zizmor stays the security linter, so its audits aren't repeated
+# here.
+#
+# A copy of the organisation's jactionlint policy, kept in step with it by hand: this public repository can't read the
+# private repository that holds it. Change a rule there first, then here.
+profile: correctness
+# A repository's .github/jactionlint-baseline.json, when it has one (jactionlint --baseline-write records it).
+baseline: auto
+rules:
+  # zizmor's: it checks action pins and Dependabot cooldowns.
+  unpinned-uses: off
+  dependabot-cooldown: off
+  # Hidden failures and unverified code.
+  pipeline-without-pipefail: error
+  unverified-download: error
+  unlocked-install: error
+  invisible-characters: error
+  # Privileged workflows on pull request code or artifacts, and AI agents outsiders can steer.
+  untrusted-checkout: error
+  untrusted-artifact: error
+  agentic-actions: error
+  comment-trigger-authorization: error
+  # Policies: every job has a timeout and every pull request workflow a concurrency group.
+  missing-timeout: error
+  concurrency-limits: error
+  dependabot-missing-actions-update: error
