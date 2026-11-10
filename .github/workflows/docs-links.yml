@@ -37,11 +37,11 @@ jobs:
       # silently turn this back into a no-op.
       - name: Check links in Markdown
         run: |
-          set -uo pipefail
+          set -uo pipefail # the runner's bash -e stays on: lychee's status is caught below, so the report still shows
           report="$RUNNER_TEMP/lychee-report.md"
+          status=0
           lychee --mode task --format markdown --output "$report" \
-            --offline --include-fragments --verbose --no-progress "*.md" "docs/**/*.md" "plugin/**/*.md"
-          status=$?
+            --offline --include-fragments --verbose --no-progress "*.md" "docs/**/*.md" "plugin/**/*.md" || status=$?
           cat "$report"
           cat "$report" >> "$GITHUB_STEP_SUMMARY"
           if grep -qE 'Total\s+\|\s+0\s' "$report"; then
