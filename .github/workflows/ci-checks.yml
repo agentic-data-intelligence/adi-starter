@@ -40,6 +40,7 @@ jobs:
           echo "$SHA256  $dir/trunk" | sha256sum -c --quiet -
           chmod +x "$dir/trunk"
           echo "$dir" >> "$GITHUB_PATH"
+          echo "TRUNK_LAUNCHER_QUIET=false" >> "$GITHUB_ENV" # a CLI sha256 mismatch then says so
           echo "path=$dir/trunk" >> "$GITHUB_OUTPUT"
 
       - name: Trunk Check Results
