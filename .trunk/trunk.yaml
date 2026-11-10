@@ -5,7 +5,7 @@
 version: 0.1
 cli:
   version: 1.25.0
-  # tools/trunk (the pinned launcher) checks the downloaded CLI against these.
+  # The launcher checks the CLI it downloads against these.
   # `trunk upgrade` rewrites these with the version. Each <os>_<arch>: key on one line only: the launcher greps the
   # whole file for it.
   sha256:
