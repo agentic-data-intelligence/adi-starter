@@ -17,6 +17,7 @@ jobs:
   trunk:
     name: Trunk Check Runner
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       checks: write # For trunk to post annotations
       contents: read # For repo checkout
@@ -48,9 +49,49 @@ jobs:
         with:
           trunk-path: ${{ steps.trunk_launcher.outputs.path }}
 
+  # actionlint's checks and the rules zizmor lacks, against .github/jactionlint.yaml (the organisation's policy), in
+  # place of Trunk's actionlint. The release binary is checked by sha256 before it is unpacked; no token, nothing online.
+  jactionlint:
+    name: jactionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # jactionlint 2.5.0 for Linux x64; the sha256 is the release's checksums file, matching GitHub's digest of the
+      # asset.
+      - name: Install jactionlint
+        env:
+          SHA256: 5ac307b0499bb0eab45ae99c23e8e0790874fbc667c75224410954e0e3c6e0f5
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/jactionlint"
+          mkdir -p "$dir"
+          curl -fsSL --retry 3 -o "$dir/jactionlint.tar.gz" \
+            https://github.com/jdx/jactionlint/releases/download/v2.5.0/jactionlint_2.5.0_linux_amd64.tar.gz
+          echo "$SHA256  $dir/jactionlint.tar.gz" | sha256sum -c --quiet -
+          tar -xzf "$dir/jactionlint.tar.gz" -C "$dir" jactionlint
+          rm "$dir/jactionlint.tar.gz"
+          echo "$dir" >> "$GITHUB_PATH"
+
+      # Findings are annotations, and fail the job. While .github/jactionlint-baseline.json exists, it holds the ones that
+      # don't count, and --baseline-check fails on an entry that matches nothing any more (unused-baseline-entry: error),
+      # so a stale entry can't keep accepting a line that comes back. Without the file, the flag would be an error.
+      - name: jactionlint
+        run: |
+          set -euo pipefail
+          args=(--no-online --no-hints --format github)
+          if [ -f .github/jactionlint-baseline.json ]; then args+=(--baseline-check); fi
+          jactionlint "${args[@]}"
+
   plugin-manifests:
     name: Plugin manifests consistency
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

@@ -9,9 +9,16 @@ on:
 permissions:
   contents: read
 
+# A newer push to the pull request supersedes the run in progress. A reopen doesn't: it lands on the same commit, so it
+# queues behind that run instead of leaving a CANCELLED check on the current head.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: ${{ github.event.action == 'synchronize' }}
+
 jobs:
   lychee:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

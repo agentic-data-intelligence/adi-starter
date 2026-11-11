@@ -26,7 +26,6 @@ runtimes:
     - python@3.13.3
 lint:
   enabled:
-    - actionlint@1.7.12
     - checkov@3.2.524
     - git-diff-check
     - markdownlint@0.48.0
@@ -36,10 +35,24 @@ lint:
     - trufflehog@3.95.2
     - yamllint@1.38.0
     - zizmor@1.24.1
+  disabled:
+    # Unmaintained since 2026-04 and rejects `$/`: the jactionlint job in ci-checks.yml runs its checks.
+    - actionlint
 actions:
+  definitions:
+    # jactionlint before a push, as CI's jactionlint job runs it (.github/scripts/jactionlint-pre-push.sh): the pinned
+    # release checked by sha256. Findings and config errors block the push; when the check can't run (a failed download
+    # or sha256 check, an unsupported platform), it says so and lets the push through, since CI still checks.
+    - id: jactionlint-pre-push
+      display_name: jactionlint
+      description: Lint GitHub Actions workflows with jactionlint and this repository's policy
+      run: bash .github/scripts/jactionlint-pre-push.sh
+      triggers:
+        - git_hooks: [pre-push]
   disabled:
     - trunk-announce
   enabled:
+    - jactionlint-pre-push
     - trunk-upgrade-available
     - trunk-fmt-pre-commit
     - trunk-check-pre-push

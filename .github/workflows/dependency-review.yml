@@ -12,6 +12,12 @@ on:
 permissions:
   contents: read
 
+# A newer push to the pull request supersedes the run in progress. A reopen doesn't: it lands on the same commit, so it
+# queues behind that run instead of leaving a CANCELLED check on the current head.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: ${{ github.event.action == 'synchronize' }}
+
 jobs:
   dependency-review:
     name: Dependency review
@@ -19,6 +25,7 @@ jobs:
     # Skip until the repo is public; the gate then turns on with no further change.
     if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Dependency review
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
