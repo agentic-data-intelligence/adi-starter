@@ -29,3 +29,6 @@ rules:
   missing-timeout: error
   concurrency-limits: error
   dependabot-missing-actions-update: error
+  # With --baseline-check (the CI job): a baseline entry that matches nothing any more fails, so a fix that removes
+  # a recorded finding has to drop its entry too, and a removed line can't come back unnoticed.
+  unused-baseline-entry: error

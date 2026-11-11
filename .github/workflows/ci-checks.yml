@@ -57,9 +57,15 @@ jobs:
           rm "$dir/jactionlint.tar.gz"
           echo "$dir" >> "$GITHUB_PATH"
 
-      # Findings are annotations, and fail the job; .github/jactionlint-baseline.json holds the ones that don't count.
+      # Findings are annotations, and fail the job. While .github/jactionlint-baseline.json exists, it holds the ones that
+      # don't count, and --baseline-check fails on an entry that matches nothing any more (unused-baseline-entry: error),
+      # so a stale entry can't keep accepting a line that comes back. Without the file, the flag would be an error.
       - name: jactionlint
-        run: jactionlint --no-online --no-hints --format github
+        run: |
+          set -euo pipefail
+          args=(--no-online --no-hints --format github)
+          if [ -f .github/jactionlint-baseline.json ]; then args+=(--baseline-check); fi
+          jactionlint "${args[@]}"
 
   plugin-manifests:
     name: Plugin manifests consistency
