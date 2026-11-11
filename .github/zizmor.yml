@@ -1,0 +1,9 @@
+# Copyright 2026 Agentic Data Intelligence SA
+# SPDX-License-Identifier: Apache-2.0
+
+# zizmor (GitHub Actions static analysis), run by Trunk.
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "*": hash-pin
