@@ -14,6 +14,8 @@ permissions:
 
 jobs:
   trunk-fmt-and-autofix:
+    # Privileged: the autofix.ci app commits this job's output to the PR branch.
+    cache-mode: none
     runs-on: ubuntu-latest
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
@@ -22,17 +24,6 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
-
-      - name: Cache Trunk
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.cache/trunk
-            ~/.trunk
-          # trunk-pinned-: never a cache from before the CLI was pinned, whose binary was downloaded unchecked.
-          key: trunk-pinned-${{ runner.os }}-${{ hashFiles('.trunk/trunk.yaml', 'trunk.yaml') }}
-          restore-keys: |
-            trunk-pinned-${{ runner.os }}-
 
       # Trunk's launcher 1.3.5 checked by sha256, not trunk-action's unchecked download. Inline: this public repository
       # uses nothing from the private shared-workflows. The launcher checks the CLI against .trunk/trunk.yaml's sha256.
