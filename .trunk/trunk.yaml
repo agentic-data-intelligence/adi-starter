@@ -28,9 +28,24 @@ lint:
     # Unmaintained since 2026-04 and rejects `$/`: the jactionlint job in ci-checks.yml runs its checks.
     - actionlint
 actions:
+  definitions:
+    # jactionlint before a push, with this repository's .github/jactionlint.yaml: Trunk's actionlint is disabled.
+    # Findings block the push. Without jactionlint 2.5.0 or uv, the hook says how to install it and lets the push
+    # through: the CI job still checks.
+    - id: jactionlint-pre-push
+      display_name: jactionlint
+      description: Lint GitHub Actions workflows with jactionlint and this repository's policy
+      run: >-
+        bash -c 'if [ "$(jactionlint --version 2>/dev/null | head -n 1)" = 2.5.0 ]; then jactionlint --no-online;
+        elif command -v uvx >/dev/null; then uvx jactionlint==2.5.0 --no-online; else echo "jactionlint: skipped,
+        install jactionlint 2.5.0 (mise use jactionlint@2.5.0, or pipx install jactionlint==2.5.0) or uv; CI still
+        checks" >&2; fi'
+      triggers:
+        - git_hooks: [pre-push]
   disabled:
     - trunk-announce
   enabled:
+    - jactionlint-pre-push
     - trunk-upgrade-available
     - trunk-fmt-pre-commit
     - trunk-check-pre-push
