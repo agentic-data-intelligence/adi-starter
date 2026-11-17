@@ -97,6 +97,7 @@ If a Claude Code session that was already open when you signed in does not show 
   (Dashboard > Settings > Security & Identity > Marketplace and Plugins). It is off by
   default on Enterprise. To update: `git pull`, `rm -rf ~/.cursor/plugins/local/adi`, re-copy,
   reload.
+
 - **Snowflake CoCo Desktop:** open **Settings** (the gear at the bottom left) **> Plugins**, select **+ > Add from GitHub**,
   enter `agentic-data-intelligence/adi-starter/plugin#main` and
   approve the permission requests while CoCo clones the repository. CoCo in Snowsight cannot
