@@ -167,10 +167,6 @@ adi-starter/
 
 The `llms.txt` file is a structured index pointing to plain-text (`.txt`) versions of every documentation page — use this if you're an agent or tool reading the docs programmatically. A concatenated single-file version of all docs is also available at [`llms-full.txt`](https://docs.agentic-data.com/llms-full.txt).
 
-## Known issues
-
-**Snowflake: a column whose name is stored in lower or mixed case is not found.** ADI's Snowflake SQL writes column names in upper case, so a column created with a double-quoted lower-case name, such as `"order_id"`, fails with `invalid identifier` when you run the query. For now, point the contract at a view that gives each column an upper-case name; from version 1.8.1 the authoring Skill tells your agent to check for this, and the [Troubleshooting page](https://docs.agentic-data.com/docs/reference/troubleshooting) has the steps.
-
 ## Getting help
 
 If this repository does not answer your question, check the [documentation](https://docs.agentic-data.com) first. If that does not solve it, the [Support and Security page](https://docs.agentic-data.com/docs/reference/support) explains how to contact us, and how to report a security issue privately.

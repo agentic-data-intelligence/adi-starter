@@ -14,7 +14,7 @@ license: Apache-2.0
 compatibility: Claude Code, Claude Cowork, Cursor, OpenClaw, Manus, Codex
 metadata:
   author: agentic-data-intelligence
-  version: "1.8.1"
+  version: "1.9.0"
   short-description: Author and validate an ADI Contract v1 YAML bundle (contract, entities, metrics) from warehouse metadata
   mcp_tools: adi.get_capabilities adi.get_authoring_spec adi.validate adi.generate_query
   mcp_tools_self_hosted: adi.replay_self_check adi.session.configure_scope adi.schema.list_objects adi.schema.get_table adi.schema.get_tables_batch adi.profile.table adi.profile.column adi.schema.create_snapshot
@@ -60,9 +60,9 @@ Both tools take a single **`bundle`** argument that must set **exactly one** of 
 }
 ```
 
-`adi.validate` also accepts `schema_snapshot_id` / `schema_metadata` (warehouse checks), `strict`, and `apply_repairs` (returns `repaired_documents`). **Determinism backstop:** when you have client-side warehouse metadata, pass it as inline `schema_metadata` together with `apply_repairs` and adopt the returned `repaired_documents` — the server then re-canonicalizes column spelling, numeric types, `time.canonical`, currency refs, and PII policies deterministically; then re-validate clean (no `apply_repairs`) to confirm the repaired bundle — which also returns its hash when `features.contract_cache` is `true`, per below. `adi.replay_self_check` takes the same `bundle` plus optional `assertion_names`.
+`adi.validate` also accepts `schema_snapshot_id` / `schema_metadata` (warehouse checks), `strict`, and `apply_repairs` (returns `repaired_documents`). **Determinism backstop:** when you have client-side warehouse metadata, pass it as inline `schema_metadata` together with `apply_repairs` and adopt the returned `repaired_documents` — the server then re-spells column names (and every `entity.column` reference to them) to the warehouse's spelling, and re-canonicalizes numeric types, `time.canonical`, currency refs, and PII policies deterministically; then re-validate clean (no `apply_repairs`) to confirm the repaired bundle — which also returns its hash when `features.contract_cache` is `true`, per below. `adi.replay_self_check` takes the same `bundle` plus optional `assertion_names`.
 
-Pass inline `schema_metadata` in this format. In our tests, a shorter format the server did not read failed as `physical_table_missing` ("does not match any inspected table") rather than saying the metadata was not understood. Keep every key shown: the shorter form had only `catalog`, `schema` and `name` for the table and `name` and `type` for each column.
+Pass inline `schema_metadata` in this format. **Copy every table and column name exactly as introspection returns it; never change its case.** The repair takes each column name's spelling from this metadata, and SQL quotes names exactly as written, so a name you re-cased would point queries at a column that does not exist. In our tests, a shorter format the server did not read failed as `physical_table_missing` ("does not match any inspected table") rather than saying the metadata was not understood. Keep every key shown: the shorter form had only `catalog`, `schema` and `name` for the table and `name` and `type` for each column.
 
 ```json
 {
@@ -198,8 +198,6 @@ Top-level keys (exact intent):
 
     This table is the offline copy; when MCP is available, the server's `engine_dialect_map` (from `adi.get_authoring_spec`) is the canonical source and returns only contract-valid literals.
 
-    **Snowflake column-name case (current behaviour).** With `engine: snowflake`, the SQL that `adi.generate_query` returns writes column names in upper case inside double quotes (`"ORDER_ID"`). Snowflake keeps the exact case of a name created in double quotes, so a column stored in lower or mixed case (such as `"order_id"`) is not found when the SQL runs, and `adi.validate` does not catch this. When you introspect a Snowflake table, compare each column name the contract will use, as the metadata stores it (for example `INFORMATION_SCHEMA.COLUMNS`), with its upper-case form. If any differs, tell the user before authoring and recommend a view with an upper-case name of its own that gives every column an upper-case name (for example `SELECT "order_id" AS ORDER_ID, ...`), with the entity's `physical` pointing at the view and its `columns` using the upper-case names. If the table holds or could later hold more than one row per primary key (the column that should identify a single row; duplicate rows, or several versions of a row), or the contract would use `row_scope: latest_by_pk`, recommend that the view keeps exactly one row per primary key, the latest (for example `QUALIFY ROW_NUMBER() OVER (PARTITION BY "order_id" ORDER BY "updated_at" DESC NULLS LAST, "_ingest_time" DESC NULLS LAST, "created_at" DESC NULLS LAST) = 1`), and set the entity's `row_scope` to `raw_all_rows`, so that ADI uses the view's rows as they are. Tell the user that the rule for choosing the latest row then lives in the view, not the contract, so it does not appear in the SQL ADI returns, and record it in the decisions record. Creating the view needs the user's agreement and their Snowflake privileges, so do not create it unless they ask.
-
 - `defaults`: **exactly** three keys:
   - `timezone`: IANA name or clear label
   - `currency`: ISO 4217 (e.g. `USD`)
@@ -217,6 +215,7 @@ Do not add extra keys under `defaults` (no `fiscal_calendar`). Do not duplicate 
   - `primary_key`: array of **physical** column names
   - `grain`: **array** of physical column names (never a prose sentence)
   - `columns`: array of `{name, type}` where `type` uses contract enums: `string` | `boolean` | `integer` | `number` | `decimal` | `date` | `timestamp` | `json`. The seeder narrows numeric types to the canonical form derived from warehouse metadata: `INTEGER`/`INT`/`BIGINT`/`SMALLINT`/`TINYINT`/`LONG` → `integer`; `DECIMAL`/`NUMERIC`/`NUMBER` (parametrized or not) → `decimal`; `FLOAT`/`DOUBLE`/`REAL` → `number`. Authoring agents should use the same vocabulary for consistency; the contract enum has no separate `double` literal.
+  - Column `name` is the column's **stored name, spelled exactly as introspection returns it**: `REGION` on an ordinary Snowflake table, `order_id_raw` on one created with quoted lower-case DDL. SQL quotes it exactly as written on every dialect, and references (`orders.REGION`) use the same spelling. The `apply_repairs` pass re-spells names and their references from `schema_metadata`; only when it cannot run, copy the introspected spelling yourself. Never lower-case names, do not recommend an upper-case view, and do not ask the user to edit the YAML.
   - **Facts** should include `time.canonical` pointing to the **business/event** timestamp column when one exists; avoid `created_at` / `updated_at` / ingest-only columns as canonical when a business time column exists. On an entity, `time.canonical` is a **bare column name** scoped to that entity (e.g. `order_placed_at`), **not** a qualified ref — contrast the metric-side rule under `metrics.yaml`.
   - **Joins** (optional): each join has `to` (target entity id), `on` as array of `{from, to}` pairs (use keys **`from` and `to`** for column mapping), and a **required `cardinality`** — one of `1:1` | `1:n` | `n:1` | `n:m` (no default; a join that omits it fails validation). If multiple joins target the same `to` entity, each join must have a distinct `join_role` (snake_case). Example (the ADI server parses **YAML 1.2**, so the `on:` key is safe unquoted; quote it as `"on":` only if you also hand-edit the bundle with older YAML-1.1 tooling):
 
@@ -228,7 +227,7 @@ Do not add extra keys under `defaults` (no `fiscal_calendar`). Do not duplicate 
         cardinality: n:1
     ```
 
-  - **CDC / soft-delete / ingest markers**: set `row_scope` on the entity when applicable: `raw_all_rows` | `current_non_deleted` | `latest_by_pk` | `event_log`. **`current_non_deleted` requires an `is_deleted` column** on the entity (in `columns`); without it, `adi.validate` rejects the contract (semantic check) and `generate_query` refuses with `contract_invalid` — do not use this scope on tables that lack a soft-delete marker. For `latest_by_pk`, document tie-break preference (e.g. `updated_at`, then ingest time, then `created_at`) in the **domain-context docs** if unclear from DDL — **not** on the entity (see strictness note below).
+  - **CDC / soft-delete / ingest markers**: set `row_scope` on the entity when applicable: `raw_all_rows` | `current_non_deleted` | `latest_by_pk` | `event_log`. **`current_non_deleted` requires an `is_deleted` column** on the entity (in `columns`); without it, `adi.validate` rejects the contract (semantic check) and `generate_query` refuses with `contract_invalid` — do not use this scope on tables that lack a soft-delete marker. `is_deleted` may be boolean, text (`'true'`/`'false'`/`''`) or 0/1; both scopes read it the same way. **CDC tables (several versions per key) with an `is_deleted` column: use `latest_by_pk`**, and keep `is_deleted` in `columns`. It keeps the latest version of each key, then drops the key if that version is soft-deleted. `current_non_deleted` filters deletes but does not deduplicate. For `latest_by_pk`, document tie-break preference (e.g. `updated_at`, then ingest time, then `created_at`) in the **domain-context docs** if unclear from DDL — **not** on the entity (see strictness note below).
 
 **Entities are strict** (`additionalProperties: false`). An entity object accepts **only** these keys: `id`, `kind`, `physical`, `primary_key`, `grain`, `unique_keys`, `time`, `row_scope`, `columns`, `joins`. There is **no entity-level `description`** field — adding one (or any other extra key) **fails validation**. Put narrative, grain rationale, and tie-break notes in the domain-context docs, not in the YAML.
 
@@ -268,7 +267,7 @@ Prefer **n:1** joins toward dimension **primary** (or documented unique) keys wh
   - If a **validated FX path** exists (rate column on the fact, `rules.yaml` `fx_rules`, or explicit `normalization_ref` / `fx_rule` references that you actually define): prefer **normalized** semantics: `amount_semantics: normalized`, `unit.kind: currency`, `unit.code: USD`, `currency_column_ref`, `normalization_ref` and/or `unit.fx_rule` as appropriate.
   - If **no** FX path exists: use `amount_semantics: local`, `currency_column_ref`, honest `unit.code` (e.g. ISO `XXX` when mixed), `allowed_group_bys` on currency and/or `scope_note` restricting analysis—do **not** claim USD normalization.
 - **Never** set `unit.code: USD` for normalized semantics **only** because `defaults.currency` is USD.
-- `normalization_ref` uses `;key=value` modifiers after the core ref. **`cast=double`** (e.g. on `fx_column:entity.col;cast=double`) tells downstream SQL generators to widen amount × rate before multiply. **`fx_table:physical`** requires **`as_of=entity.column`** (valuation date on the join path from `base_entity`); optional **`quote=USD`** (default quote if omitted), **`base=…`**, and column renames **`rate_date_col`**, **`base_currency_col`**, **`quote_currency_col`**, **`rate_col`** when the FX table does not use the standard names. The server's **`adi.get_authoring_spec`** is the canonical source for these modifiers; **`adi.validate`** enforces them.
+- `normalization_ref` uses `;key=value` modifiers after the core ref. **`cast=double`** (e.g. on `fx_column:entity.col;cast=double`) tells downstream SQL generators to widen amount × rate before multiply. **`fx_table:physical`** requires **`as_of=entity.column`** (valuation date on the join path from `base_entity`); optional **`quote=USD`** (default quote if omitted), **`base=…`**, and column renames **`rate_date_col`**, **`base_currency_col`**, **`quote_currency_col`**, **`rate_col`** when the FX table does not use the standard names or spells them in another case (`RATE_DATE`); the `apply_repairs` pass records the table's spelling. The server's **`adi.get_authoring_spec`** is the canonical source for these modifiers; **`adi.validate`** enforces them.
 - **`EntityColumn.ref`**: a column on entity A may point at `B.col` when A joins to B — logical projection (e.g. currency from a parent fact). Runtime SQL must join and project; the physical table for A may not have that column.
 
 If the metric **title** implies a filter (e.g. “active”, “open”) that the expression does not enforce, add `scope_note` or fix the title.
@@ -350,7 +349,7 @@ Fields:
 
 - `name` — snake_case, unique within the contract.
 - `concern` — short stable category id (`primary_key_unique`, `fx_column_non_null`). Lets consumers group / filter without parsing names.
-- `sql` — single statement returning exactly one row with one column. Use ANSI double-quotes for identifiers; consumers translate per dialect when replaying. Do **not** put dialect-specific syntax here — that belongs in runtime-bound checks, not in the contract.
+- `sql` — single statement returning exactly one row with one column. Use ANSI double-quotes for identifiers, spelled exactly as the contract spells them; consumers translate per dialect when replaying. Do **not** put dialect-specific syntax here — that belongs in runtime-bound checks, not in the contract.
 - `expect` — qualitative outcome of the returned scalar: `true` / `false` / `zero` / `non_zero`.
 
 **Loaders that don't recognize `self_check` MUST ignore it.** Loaders that do recognize it MUST treat assertion failures as warnings unless the consumer explicitly opts into hard-fail. The seeder currently emits two assertion families automatically:
@@ -378,6 +377,7 @@ When both a **surrogate/technical key** (e.g. ingest id) and a **natural busines
 
 - Every `entities[].physical` must exist in introspection.
 - Every column referenced in PK, grain, joins, metrics must exist on that physical table (or entity column list).
+- Every column `name` must match introspection **exactly, including case** (it is quoted as written). The `apply_repairs` pass re-spells names and the references to them.
 - Do not create bridge entities or fact lines without metadata support.
 
 ## After authoring (manual checklist)

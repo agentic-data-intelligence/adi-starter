@@ -13,7 +13,7 @@ license: Apache-2.0
 compatibility: Claude Code, Claude Cowork, Cursor, OpenClaw, Manus, Codex
 metadata:
   author: agentic-data-intelligence
-  version: "2.8.0"
+  version: "2.8.1"
   short-description: Answer metric and KPI questions about business data with contract-governed SQL from ADI
   mcp_tools: adi.get_capabilities adi.generate_query adi.validate
   mcp_tools_self_hosted: adi.execute_sql
@@ -109,7 +109,7 @@ Use:
 - `query_request_version: "1"` (required)
 - `metrics: ["metric_id", ...]` (required, 1–8 unique ids)
 - Optional:
-  - `group_bys: ["entity.column", ...]` — selectors from the metric's `allowed_group_bys`.
+  - `group_bys: ["entity.column", ...]` — selectors from the metric's `allowed_group_bys`, copied exactly: column names keep the contract's spelling (`orders.REGION` stays upper case).
   - `filters` — array of `{entity_ref, operator, value}` (see below).
   - `time_range` — `{type: "relative", value: "last_quarter", as_of: "YYYY-MM-DD"}` (relative tokens: `last_30_days`, `last_month`, `last_quarter`, `last_year`, `ytd`, `last_n_days` + `n_days`) or `{type: "absolute", start, end}`. Applies to each metric's canonical time column. For an absolute range, **`start` and `end` are both inclusive** of their calendar day — the window is `[start, end]`. To exclude the upper day (e.g. a clean month boundary like "all of June"), set `end` to the last day of the period (`2026-06-30`), or use a `filters` entry with `<` on the time column (`{entity_ref: "...", operator: "<", value: "2026-07-01"}`) instead.
   - `order_by: [{field, direction}]` — `field` must be one of your `metrics` or `group_bys`; `direction` is `asc`/`desc`.
@@ -132,7 +132,7 @@ If you are implementing a client outside MCP, use versioned routes only (unprefi
 
 ### Filters
 
-Each filter is `{entity_ref, operator, value}`. `entity_ref` is `entity_id.column` (or `entity_id[role].column`). Operator/value coupling:
+Each filter is `{entity_ref, operator, value}`. `entity_ref` is `entity_id.column` (or `entity_id[role].column`), with the column spelled exactly as in the contract. Operator/value coupling:
 
 | operator                                  | value                              |
 | ----------------------------------------- | ---------------------------------- |
