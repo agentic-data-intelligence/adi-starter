@@ -96,7 +96,7 @@ cp -R plugin/. ~/.cursor/plugins/local/adi/
 
 ### Snowflake CoCo Desktop
 
-In CoCo Desktop (Snowflake Cortex Code), signed in to your Snowflake account, open **Agent Settings > Plugins**, select **+ > Add from GitHub** and enter `agentic-data-intelligence/adi-starter/plugin#main`. Approve the permission requests while CoCo clones the repository and installs the plugin, then check that `adi` is listed under **Plugins**. To sign in, see Authentication, below.
+In CoCo Desktop (Snowflake Cortex Code), signed in to your Snowflake account, open **Settings** (the gear at the bottom left) **> Plugins**, select **+ > Add from GitHub** and enter `agentic-data-intelligence/adi-starter/plugin#main`. Approve the permission requests while CoCo clones the repository and installs the plugin, then check that `adi` is listed under **Plugins**. To sign in, see Authentication, below.
 
 On the **MCP Connectors** screen the ADI tools are listed as `adi_*`, for example `adi_get_capabilities`. CoCo in Snowsight, Snowflake's browser interface, supports Skills only and cannot load plugins. Your organisation's CoCo managed settings can also block plugins or MCP servers.
 
@@ -139,7 +139,7 @@ To start the sign-in in Claude Code, type `/mcp` in a session, select `adi` and 
 
 In Cursor, if the plugin's `adi` server shows **Needs Authentication**, select **Authenticate** and complete the login in your browser. In Cowork you connect from the plugin's Connectors tab instead (see Using ADI in Claude Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
 
-For Snowflake CoCo Desktop, open **Agent Settings > MCP Connectors**, find `adi` and select **Connect**, approve the permission requests, then complete the Zitadel login. It is connected when `adi` shows a green dot and a **Disconnect** button, with the ADI tools listed under **Tools the agent can use**.
+For Snowflake CoCo Desktop, open **Settings > MCP**, find `adi` and select **Connect**, approve the permission requests, then complete the Zitadel login. It is connected when `adi` shows a green dot and a **Disconnect** button, with the ADI tools listed under **Tools the agent can use**.
 
 If a Claude Code session that was already open when you signed in does not show the ADI tools, type `/mcp` in that session too, select `adi` and authenticate. If you installed in the Claude desktop app and added its connector there: in our tests on a Team plan, the terminal's `/mcp` listed that `adi` connector as disabled; select it and choose **Enable**.
 

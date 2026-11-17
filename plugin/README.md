@@ -72,7 +72,7 @@ To start the sign-in in Claude Code, type `/mcp` in a session, select `adi` and 
 
 In Cursor, if the plugin's `adi` server shows **Needs Authentication**, select **Authenticate** and complete the login in your browser. In Cowork you connect from the plugin's Connectors tab instead (see Using ADI in Claude Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
 
-For Snowflake CoCo Desktop, open **Agent Settings > MCP Connectors**, find `adi` and select **Connect**, approve the permission requests, then complete the Zitadel login. It is connected when `adi` shows a green dot and a **Disconnect** button, with the ADI tools listed under **Tools the agent can use**.
+For Snowflake CoCo Desktop, open **Settings > MCP**, find `adi` and select **Connect**, approve the permission requests, then complete the Zitadel login. It is connected when `adi` shows a green dot and a **Disconnect** button, with the ADI tools listed under **Tools the agent can use**.
 
 If a Claude Code session that was already open when you signed in does not show the ADI tools, type `/mcp` in that session too, select `adi` and authenticate. If you installed in the Claude desktop app and added its connector there: in our tests on a Team plan, the terminal's `/mcp` listed that `adi` connector as disabled; select it and choose **Enable**.
 
@@ -97,7 +97,7 @@ If a Claude Code session that was already open when you signed in does not show 
   (Dashboard > Settings > Security & Identity > Marketplace and Plugins). It is off by
   default on Enterprise. To update: `git pull`, `rm -rf ~/.cursor/plugins/local/adi`, re-copy,
   reload.
-- **Snowflake CoCo Desktop:** open **Agent Settings > Plugins**, select **+ > Add from GitHub**,
+- **Snowflake CoCo Desktop:** open **Settings** (the gear at the bottom left) **> Plugins**, select **+ > Add from GitHub**,
   enter `agentic-data-intelligence/adi-starter/plugin#main` and
   approve the permission requests while CoCo clones the repository. CoCo in Snowsight cannot
   load plugins, and an organisation's CoCo managed settings can block them.
