@@ -9,7 +9,7 @@ Copyright 2026 Agentic Data Intelligence SA
 
 **Contract-governed analytics for AI agents.** This repository packages the ADI skills
 and the ADI MCP server as a single plugin you can install into Claude Code (+ Cowork),
-Cursor, and Codex, or drop the skills into any agent that supports
+Cursor, Codex, and Snowflake CoCo Desktop, or drop the skills into any agent that supports
 [Agent Skills](https://agentskills.io).
 
 Two skills ship together:
@@ -94,6 +94,12 @@ mkdir -p ~/.cursor/plugins/local/adi
 cp -R plugin/. ~/.cursor/plugins/local/adi/
 ```
 
+### Snowflake CoCo Desktop
+
+In CoCo Desktop (Snowflake Cortex Code), signed in to your Snowflake account, open **Settings** (the gear at the bottom left) **> Plugins**, select **+ > Add from GitHub** and enter `agentic-data-intelligence/adi-starter/plugin#main`. Approve the permission requests while CoCo clones the repository and installs the plugin, then check that `adi` is listed under **Plugins**. To sign in, see Authentication, below.
+
+On the **MCP Connectors** screen the ADI tools are listed as `adi_*`, for example `adi_get_capabilities`. CoCo in Snowsight, Snowflake's browser interface, supports Skills only and cannot load plugins. Your organisation's CoCo managed settings can also block plugins or MCP servers.
+
 ### Other agents
 
 An [Agent Plugins](https://agent-plugins.org) host can load the `plugin/` folder directly: its manifest is `plugin/plugin.json` and its MCP configuration is `plugin/mcp.json`. For OpenClaw, Manus and any other coding agent, copy the two Skill folders (`adi-querying` and `adi-authoring`, in `plugin/skills/`) into your agent's skills directory, then configure the ADI MCP server as shown in [docs/mcp-clients.md](docs/mcp-clients.md). To install the Skills with the `skills` CLI instead of copying them, see [Use as a skills source](#use-as-a-skills-source).
@@ -133,6 +139,8 @@ To start the sign-in in Claude Code, type `/mcp` in a session, select `adi` and 
 
 In Cursor, if the plugin's `adi` server shows **Needs Authentication**, select **Authenticate** and complete the login in your browser. In Cowork you connect from the plugin's Connectors tab instead (see Using ADI in Claude Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
 
+For Snowflake CoCo Desktop, open **Settings > MCP**, find `adi` and select **Connect**, approve the permission requests, then complete the Zitadel login. It is connected when `adi` shows a green dot and a **Disconnect** button, with the ADI tools listed under **Tools the agent can use**.
+
 If a Claude Code session that was already open when you signed in does not show the ADI tools, type `/mcp` in that session too, select `adi` and authenticate. If you installed in the Claude desktop app and added its connector there: in our tests on a Team plan, the terminal's `/mcp` listed that `adi` connector as disabled; select it and choose **Enable**.
 
 Details and per-client config: [docs/mcp-clients.md](docs/mcp-clients.md).
@@ -147,7 +155,7 @@ adi-starter/
 ├── plugin/                           the unified plugin bundle (skills + MCP)
 │   ├── skills/{adi-querying,adi-authoring}/
 │   ├── plugin.json mcp.json          Agent Plugins 1.0.0 manifest + the one MCP config
-│   ├── .claude-plugin/ .codex-plugin/ .cursor-plugin/
+│   ├── .claude-plugin/ .codex-plugin/ .cursor-plugin/ .cortex-plugin/
 │   └── assets/adi_logo.png
 └── docs/mcp-clients.md               MCP client configs + HTTP fallback
 ```
@@ -158,6 +166,10 @@ adi-starter/
 - **Machine-readable docs (for AI agents):** <https://docs.agentic-data.com/llms.txt>
 
 The `llms.txt` file is a structured index pointing to plain-text (`.txt`) versions of every documentation page — use this if you're an agent or tool reading the docs programmatically. A concatenated single-file version of all docs is also available at [`llms-full.txt`](https://docs.agentic-data.com/llms-full.txt).
+
+## Known issues
+
+**Snowflake: a column whose name is stored in lower or mixed case is not found.** ADI's Snowflake SQL writes column names in upper case, so a column created with a double-quoted lower-case name, such as `"order_id"`, fails with `invalid identifier` when you run the query. For now, point the contract at a view that gives each column an upper-case name; from version 1.8.1 the authoring Skill tells your agent to check for this, and the [Troubleshooting page](https://docs.agentic-data.com/docs/reference/troubleshooting) has the steps.
 
 ## Getting help
 

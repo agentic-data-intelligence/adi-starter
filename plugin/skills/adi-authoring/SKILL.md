@@ -14,7 +14,7 @@ license: Apache-2.0
 compatibility: Claude Code, Claude Cowork, Cursor, OpenClaw, Manus, Codex
 metadata:
   author: agentic-data-intelligence
-  version: "1.8.0"
+  version: "1.8.1"
   short-description: Author and validate an ADI Contract v1 YAML bundle (contract, entities, metrics) from warehouse metadata
   mcp_tools: adi.get_capabilities adi.get_authoring_spec adi.validate adi.generate_query
   mcp_tools_self_hosted: adi.replay_self_check adi.session.configure_scope adi.schema.list_objects adi.schema.get_table adi.schema.get_tables_batch adi.profile.table adi.profile.column adi.schema.create_snapshot
@@ -197,6 +197,8 @@ Top-level keys (exact intent):
     | `other`      | `ansi` or `other`                                                                          |
 
     This table is the offline copy; when MCP is available, the server's `engine_dialect_map` (from `adi.get_authoring_spec`) is the canonical source and returns only contract-valid literals.
+
+    **Snowflake column-name case (current behaviour).** With `engine: snowflake`, the SQL that `adi.generate_query` returns writes column names in upper case inside double quotes (`"ORDER_ID"`). Snowflake keeps the exact case of a name created in double quotes, so a column stored in lower or mixed case (such as `"order_id"`) is not found when the SQL runs, and `adi.validate` does not catch this. When you introspect a Snowflake table, compare each column name the contract will use, as the metadata stores it (for example `INFORMATION_SCHEMA.COLUMNS`), with its upper-case form. If any differs, tell the user before authoring and recommend a view with an upper-case name of its own that gives every column an upper-case name (for example `SELECT "order_id" AS ORDER_ID, ...`), with the entity's `physical` pointing at the view and its `columns` using the upper-case names. If the table holds or could later hold more than one row per primary key (the column that should identify a single row; duplicate rows, or several versions of a row), or the contract would use `row_scope: latest_by_pk`, recommend that the view keeps exactly one row per primary key, the latest (for example `QUALIFY ROW_NUMBER() OVER (PARTITION BY "order_id" ORDER BY "updated_at" DESC NULLS LAST, "_ingest_time" DESC NULLS LAST, "created_at" DESC NULLS LAST) = 1`), and set the entity's `row_scope` to `raw_all_rows`, so that ADI uses the view's rows as they are. Tell the user that the rule for choosing the latest row then lives in the view, not the contract, so it does not appear in the SQL ADI returns, and record it in the decisions record. Creating the view needs the user's agreement and their Snowflake privileges, so do not create it unless they ask.
 
 - `defaults`: **exactly** three keys:
   - `timezone`: IANA name or clear label
@@ -407,7 +409,7 @@ Run **`adi.validate`** — when **`features.core_tools`** is true and **`enabled
 
 The bundle's formal shape ships alongside this skill under **`schemas/`** — self-contained static files you can use **offline** for a quick structural check before (or without) an MCP round-trip. The files themselves need nothing installed; running the check needs the tools named below. **`adi.validate`** (section A) stays the **authoritative** tool: JSON Schema catches structural/type errors only, **not** the cross-document rules (e.g. entity ids referenced from metrics, join reachability).
 
-**This check is optional.** It needs a YAML parser and a JSON Schema validator; if either is not already installed, ask the user before installing it, or skip this check and rely on **`adi.validate`**.
+**This check is optional.** It needs a YAML parser and a JSON Schema validator; if either is not already installed, ask the user before installing what is missing, or skip this check and rely on **`adi.validate`** (section A). If `adi.validate` is not available either, use the manual checklist (**After authoring**) and warn that structural guarantees are weaker.
 
 - **`schemas/adi_contract_bundle_v1.schema.json`** — validate a **single JSON object** whose top-level keys are the YAML filenames: `contract.yaml`, `entities.yaml`, `metrics.yaml`, `vocabulary.yaml`, and optionally `policies.yaml`, `rules.yaml`. Each value is the **parsed YAML** of that file (native JSON types after `yaml.safe_load`). Assemble that object, then run any **Draft 2020-12**-capable validator.
 - **Per-document schemas** (`schemas/contract_document.schema.json`, `entities_document.schema.json`, …) — quick feedback on one file at a time; they do **not** enforce cross-document rules.

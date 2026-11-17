@@ -26,6 +26,9 @@ OAuth flow — a Zitadel browser login on first connect, with nothing to configu
 - **Codex:** `auth` defaults to `oauth` for HTTP servers — run `codex mcp login adi`
   (Codex opens a local callback listener). In the Codex app, the sign-in completes in your
   browser.
+- **Snowflake CoCo Desktop:** open **Settings > MCP**, find `adi`, select **Connect** and
+  approve the permission requests, then complete the Zitadel login. It is connected when
+  `adi` shows a green dot and a **Disconnect** button.
 
 | Client        | File                                  | Where it goes                                                                                                                                                                        |
 | ------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -33,6 +36,7 @@ OAuth flow — a Zitadel browser login on first connect, with nothing to configu
 | Claude Cowork | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (**Customize > Plugins**). Installing does not add the connector: add and connect `adi` from the plugin's **Connectors** tab, opened from Cowork.        |
 | Cursor        | [plugin/mcp.json](../plugin/mcp.json) | Cursor's manifest points `mcpServers` at this file; or merge it into `~/.cursor/mcp.json` under `mcpServers`.                                                                        |
 | Codex         | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (install via `.agents/plugins/marketplace.json`). OAuth (`codex mcp login adi`); for a loose install, add `[mcp_servers.adi]` to `~/.codex/config.toml`. |
+| CoCo Desktop  | [plugin/mcp.json](../plugin/mcp.json) | Bundled in the `adi` plugin (**Settings > Plugins**); CoCo's manifest points `mcpServers` at this file. Sign in from **Settings > MCP**.                                             |
 
 **Claude Code:** use `"type": "streamable-http"` (or its Claude Code name, `"http"`), not
 `"type": "url"`. Restart after save; approve trust if prompted.
