@@ -8,7 +8,7 @@ Copyright 2026 Agentic Data Intelligence SA
 **Status: Closed Beta.** Starter Edition is in Closed Beta: access is by invitation, and you should expect changes and fixes while the Beta runs. See the [documentation](https://docs.agentic-data.com) for setup and current limitations.
 
 One plugin bundle, consumed by every plugin-based host: **Claude Code (+ Cowork)**,
-**Cursor**, and **Codex**. It ships the two ADI skills (`adi-querying`, `adi-authoring`) plus the
+**Cursor**, **Codex**, and **Snowflake CoCo Desktop**. It ships the two ADI skills (`adi-querying`, `adi-authoring`) plus the
 ADI MCP server. Edit the skill files under `skills/` directly; the per-host manifests
 and the shared `mcp.json` are hand-maintained.
 
@@ -22,6 +22,7 @@ plugin/
 ├── .claude-plugin/plugin.json   Claude Code manifest (mcpServers → ./mcp.json)
 ├── .codex-plugin/plugin.json    Codex manifest (declares skills + mcpServers → ./mcp.json)
 ├── .cursor-plugin/plugin.json   Cursor manifest (mcpServers → ./mcp.json)
+├── .cortex-plugin/plugin.json   Snowflake CoCo manifest (mcpServers → ./mcp.json)
 └── assets/adi_logo.png          plugin logo
 ```
 
@@ -29,12 +30,17 @@ Each host reads its own manifest directory and ignores the others. An
 [Agent Plugins](https://agent-plugins.org) host reads the root `plugin.json` and `mcp.json`.
 Codex reads both: the root `plugin.json` for the plugin's identity and `.codex-plugin/plugin.json` for its own settings.
 
+Snowflake CoCo reads `.cortex-plugin/plugin.json`, and reads `.claude-plugin/plugin.json` only when there is no `.cortex-plugin/` folder.
+
 There is one MCP config, `mcp.json`, in the Agent Plugins format: a `$schema` key and
 `"type": "streamable-http"`. Agent Plugins fixes that file name and allows only `streamable-http` or the legacy `sse`
 for a remote server; Claude Code accepts `streamable-http` as an alias of its `http`. Every
 vendor manifest points `mcpServers` at `./mcp.json`, so do not add a `.mcp.json`: two MCP
-configs can drift apart. Tested with Claude Code 2.1.304, Codex CLI
-0.142.0, Claude Cowork, the Codex app (in ChatGPT) and Cursor 3.27.22 (local copy).
+configs can drift apart.
+
+Tested with Claude Code 2.1.304, Codex CLI
+0.142.0, Claude Cowork, the Codex app (in ChatGPT), Cursor 3.27.22 (local copy) and
+Snowflake CoCo Desktop 1.25.4 (local copy).
 
 ## No nested `agents/` under `skills/<name>/`
 
@@ -66,6 +72,8 @@ To start the sign-in in Claude Code, type `/mcp` in a session, select `adi` and 
 
 In Cursor, if the plugin's `adi` server shows **Needs Authentication**, select **Authenticate** and complete the login in your browser. In Cowork you connect from the plugin's Connectors tab instead (see Using ADI in Claude Cowork in [Getting Started](https://docs.agentic-data.com/docs/starter-edition/getting-started)).
 
+For Snowflake CoCo Desktop, open **Agent Settings > MCP Connectors**, find `adi` and select **Connect**, approve the permission requests, then complete the Zitadel login. It is connected when `adi` shows a green dot and a **Disconnect** button, with the ADI tools listed under **Tools the agent can use**.
+
 If a Claude Code session that was already open when you signed in does not show the ADI tools, type `/mcp` in that session too, select `adi` and authenticate. If you installed in the Claude desktop app and added its connector there: in our tests on a Team plan, the terminal's `/mcp` listed that `adi` connector as disabled; select it and choose **Enable**.
 
 ## Install
@@ -89,5 +97,9 @@ If a Claude Code session that was already open when you signed in does not show 
   (Dashboard > Settings > Security & Identity > Marketplace and Plugins). It is off by
   default on Enterprise. To update: `git pull`, `rm -rf ~/.cursor/plugins/local/adi`, re-copy,
   reload.
+- **Snowflake CoCo Desktop:** open **Agent Settings > Plugins**, select **+ > Add from GitHub**,
+  enter `agentic-data-intelligence/adi-starter/plugin#main` and
+  approve the permission requests while CoCo clones the repository. CoCo in Snowsight cannot
+  load plugins, and an organisation's CoCo managed settings can block them.
 
 MCP client setup and troubleshooting: [docs/mcp-clients.md](../docs/mcp-clients.md).

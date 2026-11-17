@@ -36,7 +36,7 @@ illegal layout and silently registers **0 skills** for the whole plugin. See
 These are not skill content — change them deliberately and keep them consistent:
 
 - Per-host plugin manifests under `plugin/` (`.claude-plugin/`, `.codex-plugin/`,
-  `.cursor-plugin/`), each pointing `mcpServers` at `./mcp.json`.
+  `.cursor-plugin/`, `.cortex-plugin/`), each pointing `mcpServers` at `./mcp.json`.
 - The vendor-neutral [Agent Plugins 1.0.0](https://agent-plugins.org) files `plugin/plugin.json`
   and `plugin/mcp.json`, the only MCP config. Their schemas are closed: `plugin.json` takes
   only `$schema`, `name`, `version`, `description`, `author`, `homepage`, `repository`,
@@ -46,8 +46,8 @@ These are not skill content — change them deliberately and keep them consisten
   `.agents/plugins/`) — all three point their plugin `source` at `./plugin`.
 - `docs/mcp-clients.md`.
 
-When bumping the plugin version, update it in all four plugin manifests (`plugin/plugin.json`
-and the three `plugin/.*-plugin/plugin.json`) and in the `.claude-plugin/` and
+When bumping the plugin version, update it in all five plugin manifests (`plugin/plugin.json`
+and the four `plugin/.*-plugin/plugin.json`) and in the `.claude-plugin/` and
 `.cursor-plugin/` root `marketplace.json` files (the `.agents/plugins/` one has no version
 field).
 

@@ -1,7 +1,7 @@
 {
   "name": "adi",
   "interface": {
-    "displayName": "ADI"
+    "displayName": "Agentic Data Intelligence"
   },
   "plugins": [
     {
