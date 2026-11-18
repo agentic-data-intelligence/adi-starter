@@ -438,7 +438,7 @@
             }
           ],
           "default": null,
-          "description": "Which physical rows belong in analytics when CDC/soft-delete/SCD markers exist. For latest_by_pk, document how 'latest' is resolved unless the warehouse encodes it in a view: default tie-break preference is updated_at, then ingest time (_ingest_time or equivalent), then created_at; use another ordering only when metadata or DAL states it explicitly.",
+          "description": "Which physical rows belong in analytics when CDC/soft-delete/SCD markers exist. For latest_by_pk, document how 'latest' is resolved unless the warehouse encodes it in a view: default tie-break preference is updated_at, then ingest time (_ingest_time or equivalent), then created_at; use another ordering only when metadata or DAL states it explicitly. When the entity declares an is_deleted column (boolean, text or 0/1), latest_by_pk also drops a key whose latest row is soft-deleted, so it covers CDC tables with deletes.",
           "title": "Row Scope"
         },
         "columns": {
